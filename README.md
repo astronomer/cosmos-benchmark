@@ -23,13 +23,15 @@ This project contains the following files and folders:
 Run Your Project Locally
 ========================
 
-Initialise submodules by using:
+Follow these three steps:
+
+1. Initialise submodules by using:
 
 ```bash
 git submodule init
 ```
 
-Start Airflow on your local machine by running:
+2. Start Airflow on your local machine by running:
 
 ```bash
 astro dev start
@@ -46,6 +48,9 @@ This command will spin up five Docker containers on your machine, each for a dif
 When all five containers are ready, the command will open the browser to the Airflow UI at http://localhost:8080/. You should also be able to access your Postgres Database at 'localhost:5432/postgres' with username 'postgres' and password 'postgres'.
 
 Note: If you already have either of the above ports allocated, you can either [stop your existing Docker containers or change the port](https://www.astronomer.io/docs/astro/cli/troubleshoot-locally#ports-are-not-available-for-my-local-airflow-webserver).
+
+3. Create a BigQuery connection in Airflow, with the name `bigquery_conn`. This can be done by following [these instructions](https://www.astronomer.io/docs/learn/connections/bigquery/). This is an example of how the setup can look, considering you pre-generated a [BigQuery service account JSON key file](https://cloud.google.com/iam/docs/keys-create-delete):
+<img width="905" height="745" alt="example-bq-conn-ui" src="https://github.com/user-attachments/assets/243de7e3-77c6-4554-9941-9f68d2c27ffc" />
 
 Deploy Your Project to Astronomer
 =================================
