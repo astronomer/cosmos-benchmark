@@ -1,0 +1,3 @@
+[submodule "dbt/fhir-dbt-analytics"]
+	path = dbt/fhir-dbt-analytics
+	url = https://github.com/google/fhir-dbt-analytics.git
