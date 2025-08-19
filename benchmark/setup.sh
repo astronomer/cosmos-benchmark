@@ -6,8 +6,6 @@ set -e
 
 # Create a Kind cluster
 kind create cluster
-
-# Add the necessary Helm repositories
 helm repo add apache-airflow https://airflow.apache.org
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
