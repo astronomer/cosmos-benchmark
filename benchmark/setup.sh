@@ -15,6 +15,6 @@ helm install prometheus prometheus-community/kube-prometheus-stack \
   --namespace monitoring --create-namespace \
   --set prometheus.prometheusSpec.scrapeInterval="5s"
 
-docker build -t benchmark:0.0.1 -f benchmark/Dockerfile .
-kind load docker-image benchmark:0.0.1
+docker build -t benchmark:0.0.2 -f benchmark/Dockerfile .
+kind load docker-image benchmark:0.0.2
 
