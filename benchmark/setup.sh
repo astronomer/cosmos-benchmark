@@ -15,6 +15,16 @@ helm install prometheus prometheus-community/kube-prometheus-stack \
   --namespace monitoring --create-namespace \
   --set prometheus.prometheusSpec.scrapeInterval="5s"
 
-docker build -t benchmark:0.0.2 -f benchmark/Dockerfile .
-kind load docker-image benchmark:0.0.2
+docker build -t benchmark:0.0.4 -f benchmark/Dockerfile .
+kind load docker-image benchmark:0.0.4
 
+# Create a namespace
+kubectl create namespace airflow
+
+## Install Airflow using Helm
+helm install airflow apache-airflow/airflow --version 1.16.0 \
+  --namespace airflow \
+  -f values.yaml
+
+kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n monitoring 9090 &
+kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow &

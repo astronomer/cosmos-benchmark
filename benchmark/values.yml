@@ -1,0 +1,40 @@
+executor: CeleryExecutor
+#defaultAirflowTag: 2.10.0
+
+env:
+  - name: "DAG_NAME"
+    value: "example_operator_build"
+
+images:
+  airflow:
+    repository: fhir-dbt-analytics
+    tag: 0.31.0
+
+airflow:
+
+  config:
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: false
+    #AIRFLOW__API__AUTH_BACKEND: "airflow.api.auth.backend.basic_auth"
+    #AIRFLOW__WEBSERVER__ACCESS_CONTROL_ALLOW_ORIGINS: 'http://localhost'
+
+    AIRFLOW__CELERY__WORKER_CONCURRENCY: "2"     # 2 tasks per worker pod
+    AIRFLOW__CORE__PARALLELISM: "2"             # Optional: global max task slots
+
+scheduler:
+    resources:
+      requests:
+        cpu: "2"
+        memory: "4Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+
+workers:
+    replicas: 2
+    resources:
+      requests:
+        cpu: "2"
+        memory: "4Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"
