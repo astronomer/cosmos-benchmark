@@ -44,6 +44,12 @@ To run this analysis, run the following scripts:
 ./run-test.sh
 ```
 
+3. To delete the cluster, once you finished running the tests:
+
+```
+./teardown.sh
+```
+
 Results
 -------
 
