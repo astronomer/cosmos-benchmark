@@ -24,3 +24,5 @@ WORKDIR /app
 COPY dbt/fhir-dbt-analytics /app
 COPY benchmark/pre-process/profiles.yml /app/profiles.yml
 COPY benchmark/pre-process/key.json /app/key.json
+
+COPY benchmark/experiment/scripts/run-dbt-core-per-model.sh /app/run-dbt-core-per-model.sh

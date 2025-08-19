@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: dbt-core-build
+  name: dbt-core-run-per-model
 spec:
   template:
     spec:
       containers:
         - name: dbt
           image: benchmark:0.0.2
-          command: ["dbt", "build"]
+          command: ["./run-dbt-core-per-model.sh"]
           resources:
             # Equivalent to Astro's A10 instance
             requests:

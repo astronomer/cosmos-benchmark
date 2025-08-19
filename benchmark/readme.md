@@ -53,28 +53,27 @@ This command will
 ./run-test.sh
 ```
 
-Each experiment is defined as K8s jobs in the folder `experiment`. By default, we will run two types of experiment:
-- Run the `dbt build` command against the dbt project `fhir-dbt-analytics`
-- Run the `dbt run` command against the dbt project `fhir-dbt-analytics`
+Each experiment is defined as K8s jobs in the folder `experiment`. These are the jobs available:
+- dbt-core-build: Runs `dbt build` against `fhir-dbt-analytics`
+- dbt-core-run: Run the `dbt run` command against the dbt project `fhir-dbt-analytics`
+- dbt-core-seed: Run the `dbt seed` command against the dbt project `fhir-dbt-analytics`
+- dbt-core-test: Run the `dbt test` command against the dbt project `fhir-dbt-analytics`
+- dbt-core-run-per-model: Run sequential `dbt run` commands for each model of the project dbt project `fhir-dbt-analytics` (185)
 
-Each experiment will be run 3 times.
+By default, the job `dbt-core-run-per-model` is run.
 
-For each experiment, the following is done:
+By default, each selected experiment will be run 3 times.
+
+For each experiment, the following steps are completed:
 - create a K8s job
 - execute the K8s job in the Kind cluster
 - collect the metrics for that job
 - delete the job
 
-The experiments run and the amount of repetitions can be configured by setting the variables via command line, as illustrated below:
+The experiments run and the amount of repetitions can be configured by setting environment variables via command line, as illustrated below:
 ```
 JOBS="dbt-core-build dbt-core-run" REPS=3 ./run-test.sh
 ```
-
-The jobs made available, as a starting point, are:
-- dbt-core-build
-- dbt-core-run
-- dbt-core-seed
-- dbt-core-test
 
 3. The collected metrics are printed in the terminal, example:
 
