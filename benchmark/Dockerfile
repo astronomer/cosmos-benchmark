@@ -23,3 +23,5 @@ WORKDIR /app
 COPY ../dbt/fhir-dbt-analytics /app
 COPY profiles.yml /app/profiles.yml
 COPY app.json /app/app.json
+
+CMD ["dbt", "build"]
