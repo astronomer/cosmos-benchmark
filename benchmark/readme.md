@@ -94,6 +94,11 @@ Max Memory Usage:     402 MiB
 Stddev Memory Usage:  83 MiB
 Job Duration: 00:04:44
 job.batch "dbt-core-build" deleted
+
+3. To delete the cluster, once you finished running the tests:
+
+```
+./teardown.sh
 ```
 
 Results
