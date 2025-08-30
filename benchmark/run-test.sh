@@ -9,7 +9,7 @@ for job in dbt-core-seed dbt-core-test dbt-core-run dbt-core-build; do
     echo Start time: $(date +"%Y-%m-%dT%H:%M:%S%z")
     kubectl delete job "$job" --ignore-not-found
     kubectl apply -f "benchmark/$job.yaml"
-    kubectl wait --for=condition=complete job/$job --timeout=30s
+    kubectl wait --for=condition=complete job/$job --timeout=3000s
     echo End time: $(date +"%Y-%m-%dT%H:%M:%S%z")
     sleep 40
     ./benchmark/check-metrics.sh "$job"
