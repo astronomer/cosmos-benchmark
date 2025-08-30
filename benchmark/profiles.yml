@@ -4,7 +4,7 @@ fhir_dbt_analytics:
     dev:
       type: bigquery
       method: service-account
-      project: astronomer-airflow-providers
-      dataset: test_async # You can also use "schema" here
+      project: astronomer-dag-authoring
+      dataset: release_17 # You can also use "schema" here
       threads: 4 # Must be a value of 1 or greater
       keyfile: "{{ env_var('KEY_PATH', '/app/key.json') }}"
