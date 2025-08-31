@@ -3,12 +3,12 @@ executor: CeleryExecutor
 
 env:
   - name: "DAG_NAME"
-    value: "example_operator_build"
+    value: "simple_dag_async"
 
 images:
   airflow:
-    repository: fhir-dbt-analytics
-    tag: 0.31.0
+    repository: apache/airflow
+    tag: 2.10.0
 
 airflow:
 

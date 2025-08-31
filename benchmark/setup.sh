@@ -24,7 +24,7 @@ kubectl create namespace airflow
 ## Install Airflow using Helm
 helm install airflow apache-airflow/airflow --version 1.16.0 \
   --namespace airflow \
-  -f values.yaml
+  -f benchmark/values.yml
 
 kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n monitoring 9090 &
 kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow &
