@@ -1,5 +1,4 @@
-# Airflow DAG
-import os
+# Airflow DAG to compare the performance of running dbt Core commands in Airflow using the DbtDag and DbtBuildLocalOperator
 from datetime import datetime
 from pathlib import Path
 
@@ -19,7 +18,6 @@ from cosmos import DbtBuildLocalOperator, DbtRunLocalOperator, DbtSeedLocalOpera
 
 
 DBT_PROJECT_PATH = Path(__file__).parent.parent
-DAG_NAME = os.getenv("DAG_NAME", "example_operator_build")
 
 current_dag_id = get_parsing_context().dag_id
 
