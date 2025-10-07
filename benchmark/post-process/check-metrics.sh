@@ -30,7 +30,7 @@ seconds_to_hhmmss() {
 
 echo "Fetching metrics for pod: $JOB_POD_NAME"
 
-# CPU max utilization over last 5 minutes
+# CPU max utilization over $TIME_RANGE
 CPU_MAX_QUERY="max_over_time(rate(container_cpu_usage_seconds_total{pod=\"$JOB_POD_NAME\", container=\"dbt\"}[1m])[${TIME_RANGE}:])"
 CPU_MAX=$(query_prometheus "$CPU_MAX_QUERY")
 
