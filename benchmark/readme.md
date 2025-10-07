@@ -58,7 +58,9 @@ Each experiment is defined as K8s jobs in the folder `experiment`. These are the
 - dbt-core-run: Run the `dbt run` command against the dbt project `fhir-dbt-analytics`
 - dbt-core-seed: Run the `dbt seed` command against the dbt project `fhir-dbt-analytics`
 - dbt-core-test: Run the `dbt test` command against the dbt project `fhir-dbt-analytics`
-- dbt-core-run-per-model: Run sequential `dbt run` commands for each model of the project dbt project `fhir-dbt-analytics` (185)
+- dbt-core-run-per-model: Run sequential `dbt run` commands for each model of the project dbt project `fhir-dbt-analytics` (185 models)
+- airflow-test-dbtdag: Run `airflow dags test` against a Cosmos `DbtDag` that creates one individual Airflow task per dbt model
+- airflow-test-buildoperator: Run `airflow dags test` using a DAG that instantiates Cosmos' `DbtBuildLocalOperator` and runs the dbt project `fhir-dbt-analytics` using a single Airflow task
 
 By default, the job `dbt-core-run-per-model` is run.
 

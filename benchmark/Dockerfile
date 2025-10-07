@@ -31,7 +31,9 @@ COPY dbt/fhir-dbt-analytics /app
 COPY benchmark/pre-process/profiles.yml /app/profiles.yml
 COPY benchmark/pre-process/key.json /app/key.json
 
+# Specific for `dbt-core-run-per-model`
 COPY benchmark/experiment/scripts/run-dbt-core-per-model.sh /app/run-dbt-core-per-model.sh
 
-#CMD ["airflow", "dags", "test", "example_dbt_dag"]
-
+# Specific for `airflow-test-buildoperator` and `airflow-test-dbtdag`
+COPY benchmark/dags /app/dags
+RUN airflow db reset -y
