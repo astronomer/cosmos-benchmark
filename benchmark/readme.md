@@ -22,7 +22,7 @@ Install the following tools:
 * Docker or equivalent tool.
 * Kind
 
-Create a file called `app.key` inside this folder, which contains the credentials to access the BigQuery instance of interest. While we are running locally, this approach is acceptable. If we are using a hosted K8s cluster, we should use K8s secrets or another more secure approach.
+Create a file called `key.json` inside the folder `benchmark/pre-process`, which contains the credentials to access the BigQuery instance of interest. While we are running locally, this approach is acceptable. If we are using a hosted K8s cluster, we should use K8s secrets or another more secure approach.
 
 Analysing performance
 ---------------------

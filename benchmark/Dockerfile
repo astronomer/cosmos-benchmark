@@ -14,12 +14,13 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip
 
 # Install airflow dependencies
-RUN pip install -r requirements.txt
+COPY benchmark/pre-process/requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
 
 # Create working directory
 WORKDIR /app
 
 # Copy project files into the container
-COPY ../dbt/fhir-dbt-analytics /app
-COPY profiles.yml /app/profiles.yml
-COPY key.json /app/key.json
+COPY dbt/fhir-dbt-analytics /app
+COPY benchmark/pre-process/profiles.yml /app/profiles.yml
+COPY benchmark/pre-process/key.json /app/key.json
