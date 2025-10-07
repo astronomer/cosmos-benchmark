@@ -10,7 +10,7 @@ spec:
           image: benchmark:0.0.1
           command: ["dbt", "build"]
           resources:
-            # Equivalent to A10 instance
+            # Equivalent to Astro's A10 instance
             requests:
               cpu: "2"
               memory: "4Gi"
