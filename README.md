@@ -30,6 +30,7 @@ Follow these three steps:
 
 ```bash
 git submodule init
+git submodule update 
 ```
 
 2. Start Airflow on your local machine by running:
