@@ -32,16 +32,61 @@ This approach will be extended to run Airflow.
 
 To run this analysis, run the following scripts:
 
-1. First, setup the K8s cluster with Kind, build the docker image, and make it available in the K8s cluster. Also install prometheus, so we can fetch metrics:
+1. Firstly, run the pre-process, by running:
 
 ```
 ./setup.sh
 ```
 
-2. Second, for each test case of interest, create a K8s job. Execute it in the Kind cluster and collect the metrics for that job:
+This command will
+- create a K8s cluster with Kind
+- build the docker image with dbt Core, the dbt project and credentials to access the Data Warehouse
+- make the docker image available to the K8s cluster
+- install Prometheus in the cluster, so we can fetch metrics
+- expose Prometheus in the host via port 9090
+
+2. Second, run the experiments of interest by running:
 
 ```
 ./run-test.sh
+```
+
+Each experiment is defined as K8s jobs in the folder `experiment`. By default, we will run two types of experiment:
+- Run the `dbt build` command against the dbt project `fhir-dbt-analytics`
+- Run the `dbt run` command against the dbt project `fhir-dbt-analytics`
+
+Each experiment will be run 3 times.
+
+For each experiment, the following is done:
+- create a K8s job
+- execute the K8s job in the Kind cluster
+- collect the metrics for that job
+- delete the job
+
+The experiments run and the amount of repetitions can be configured by setting the variables via command line, as illustrated below:
+```
+JOBS="dbt-core-build dbt-core-run" REPS=3 ./run-jobs.sh
+```
+
+3. The collected metrics are printed in the terminal, example:
+
+```
+=== Run #1 for dbt-core-build ===
+Start time: 2025-10-07T03:33:24-0700
+job.batch "dbt-core-build" deleted
+job.batch/dbt-core-build created
+job.batch/dbt-core-build condition met
+End time: 2025-10-07T03:38:10-0700
+Fetching metrics for pod: dbt-core-build-54h4q
+
+Metrics for Pod: dbt-core-build-54h4q (last 240h)
+----------------------------------------------
+Max CPU Utilization (cores):    0.13957793105490057
+Stddev CPU Utilization (cores): 0.02129759725801408
+Max Memory Usage:     402 MiB
+Stddev Memory Usage:  83 MiB
+Job Duration: 00:04:44
+job.batch "dbt-core-build" deleted
 ```
 
 Results
