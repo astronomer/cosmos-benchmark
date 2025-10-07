@@ -10,8 +10,11 @@
 
 #JOBS="${JOBS:-dbt-core-seed dbt-core-test dbt-core-run dbt-core-build}"
 #JOBS="${JOBS:-dbt-core-build dbt-core-run}"
-JOBS="${JOBS:-dbt-core-run-per-model}"
-REPS="${REPS:-3}"
+#JOBS="${JOBS:-dbt-core-run-per-model}"
+#REPS="${REPS:-3}"
+
+JOBS="${JOBS:-airflow-test-buildoperator airflow-test-dbtdag}"
+REPS="${REPS:-1}"
 
 for job in $JOBS; do
   for ((i=1; i<=REPS; i++)); do
