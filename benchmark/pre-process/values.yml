@@ -17,6 +17,11 @@ airflow:
     AIRFLOW__CELERY__WORKER_CONCURRENCY: "2"     # 2 tasks per worker pod
     AIRFLOW__CORE__PARALLELISM: "2"             # Optional: global max task slots
 
+postgresql:
+  image:
+    repository: postgres
+    tag: latest
+
 scheduler:
     resources:
       requests:

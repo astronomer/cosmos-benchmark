@@ -31,8 +31,8 @@ kind load docker-image benchmark:0.0.4
 kubectl create namespace airflow
 
 ## Install Airflow using Helm
-helm install airflow apache-airflow/airflow --version 1.16.0 \
+helm install airflow apache-airflow/airflow --version 1.18.0 \
   --namespace airflow \
-  -f pre-process/values.yaml
+  -f pre-process/values.yml
 
 kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow &
