@@ -9,7 +9,7 @@ The perfomance is analysed from three perspectives:
 * Total memory consumed
 * Total vCPU consumed
 
-These metrics can be extended over time. One component we would like to evaluate in future, fpr 
+These metrics can be extended over time. One component we would like to evaluate in the future is the time taken for data freshness checks.
 
 For the tests to be fair, except for dbt Cloud (since we don't control it), we will run them using a similar "hardware". The tests will be run in a pod in a Kubernetes cluster with the same values for resources and limits.
 
