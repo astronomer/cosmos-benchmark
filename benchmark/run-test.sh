@@ -18,6 +18,7 @@ REPS="${REPS:-1}"
 
 for job in $JOBS; do
   for ((i=1; i<=REPS; i++)); do
+    echo -e "\n\n\n"
     echo "=== Run #$i for $job ==="
     echo Start time: $(date +"%Y-%m-%dT%H:%M:%S%z")
     kubectl delete job "$job" --ignore-not-found
