@@ -1,14 +1,11 @@
 executor: CeleryExecutor
 #defaultAirflowTag: 2.10.0
 
-env:
-  - name: "DAG_NAME"
-    value: "example_operator_build"
 
 images:
   airflow:
-    repository: fhir-dbt-analytics
-    tag: 0.31.0
+    repository: benchmark
+    tag: 0.0.4
 
 airflow:
 
