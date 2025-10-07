@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
         - name: dbt
-          image: benchmark:0.0.2
+          image: benchmark:0.0.3
           command: ["dbt", "build"]
           resources:
             # Equivalent to Astro's A10 instance

@@ -8,9 +8,6 @@ spec:
       containers:
         - name: dbt
           image: benchmark:0.0.3
-          env:
-            - name: USE_COSMOS_DBT_DAG
-              value: "0"
           command: ["airflow", "dags", "test", "example_operator_build"]
           resources:
             # Equivalent to Astro's A10 instance
