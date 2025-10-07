@@ -8,10 +8,10 @@ Project Contents
 
 This project contains the following files and folders:
 
-- **benchmark**: Contains step-by-step scripts to benchmark dbt Core and dbt Core with Cosmos using [fhir-dbt-analytics](https://github.com/google/fhir-dbt-analytics#)
+- **benchmark**: Contains step-by-step scripts to benchmark dbt Core and dbt Core with Cosmos using [fhir-dbt-analytics](https://github.com/google/fhir-dbt-analytics)
 - **dags**: This folder contains the Python files that represent Airflow DAGs. These are simple DAGs that leverage Astronomer Cosmos.
 - **dbt**: This folder contains the following dbt projects:
-  * [fhir-dbt-analytics](https://github.com/google/fhir-dbt-analytics#): A dbt Core project developed by Google, that interfaces with BigQuery. It contains:
+  * [fhir-dbt-analytics](https://github.com/google/fhir-dbt-analytics): A dbt Core project developed by Google, that interfaces with BigQuery. It contains:
     * 2 seeds
     * 52 sources
     * 185 models
