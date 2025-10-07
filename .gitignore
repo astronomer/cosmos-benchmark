@@ -1,2 +1,4 @@
 .idea
 __pycache__
+benchmark/pre-process/key.json
+dbt/logs
