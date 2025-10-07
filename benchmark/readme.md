@@ -67,7 +67,7 @@ For each experiment, the following is done:
 
 The experiments run and the amount of repetitions can be configured by setting the variables via command line, as illustrated below:
 ```
-JOBS="dbt-core-build dbt-core-run" REPS=3 ./run-jobs.sh
+JOBS="dbt-core-build dbt-core-run" REPS=3 ./run-test.sh
 ```
 
 The jobs made available, as a starting point, are:
