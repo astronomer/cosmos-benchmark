@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
         - name: dbt
-          image: benchmark:0.0.2
+          image: benchmark:0.0.3
           command: ["./run-dbt-core-per-model.sh"]
           resources:
             # Equivalent to Astro's A10 instance
