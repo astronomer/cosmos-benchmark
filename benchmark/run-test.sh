@@ -5,9 +5,10 @@
 # === Configuration ===
 # You can either:
 # 1. Pass these as environment variables:
-#       JOBS="dbt-core-build dbt-core-run" REPS=3 ./run-jobs.sh
+#       JOBS="dbt-core-build dbt-core-run" REPS=3 ./run-test.sh
 # 2. Or set them below:
 #JOBS="${JOBS:-dbt-core-seed dbt-core-test dbt-core-run dbt-core-build}"
+
 JOBS="${JOBS:-dbt-core-build dbt-core-run}"
 REPS="${REPS:-3}"
 
