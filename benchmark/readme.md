@@ -24,6 +24,8 @@ Install the following tools:
 
 Create a file called `key.json` inside the folder `benchmark/pre-process`, which contains the credentials to access the BigQuery instance of interest. While we are running locally, this approach is acceptable. If we are using a hosted K8s cluster, we should use K8s secrets or another more secure approach.
 
+Update the `profiles.yml`  file in the pre-process to reference your BigQuery dataset and related Google project.
+
 Analysing performance
 ---------------------
 
@@ -67,6 +69,12 @@ The experiments run and the amount of repetitions can be configured by setting t
 ```
 JOBS="dbt-core-build dbt-core-run" REPS=3 ./run-jobs.sh
 ```
+
+The jobs made available, as a starting point, are:
+- dbt-core-build
+- dbt-core-run
+- dbt-core-seed
+- dbt-core-test
 
 3. The collected metrics are printed in the terminal, example:
 
