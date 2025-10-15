@@ -15,6 +15,7 @@ This project contains the following files and folders:
     * 2 seeds
     * 52 sources
     * 185 models
+  * [altered_jaffle_shop](https://github.com/astronomer/cosmos-benchmark/tree/main/dbt/altered_jaffle_shop): A custom dbt project designed to pre-compile and focus on specific custom models without any dbt-generated metadata dependencies. This project is based on a copy of the jaffle-shop project, with an additional four models that require significant time to run, enabling measurement of async DAG performance. The project includes one seed file — you can increase model transformation time by updating the values in this seed. More models can be generated automatically by running the following bash command: `sh benchmark/auto_generate_models.sh 2`.
 - **Dockerfile**: This file contains a versioned Astro Runtime Docker image that provides a differentiated Airflow experience.
 - **include**: This folder contains any additional files that you want to include as part of your project. In this particular case, it contains configuration files.
 - **packages.txt**: Install OS-level packages needed for your project by adding them to this file. It is empty by default.

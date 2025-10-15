@@ -1,0 +1,11 @@
+altered_jaffle_shop:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: astronomer-airflow-providers
+      dataset: test_async
+      threads: 4 # Must be a value of 1 or greater
+      keyfile: # /PATH/TO/BIGQUERY/keyfile.json
+      OPTIONAL_CONFIG: VALUE
