@@ -4,8 +4,7 @@ altered_jaffle_shop:
     dev:
       type: bigquery
       method: service-account
-      project: astronomer-airflow-providers
-      dataset: test_async
+      project: astronomer-dag-authoring
+      dataset: cosmos_async_bechmark_test
       threads: 4 # Must be a value of 1 or greater
       keyfile: # /PATH/TO/BIGQUERY/keyfile.json
-      OPTIONAL_CONFIG: VALUE

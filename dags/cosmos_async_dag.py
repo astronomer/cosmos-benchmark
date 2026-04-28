@@ -2,24 +2,24 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from cosmos import DbtDag, ExecutionConfig, ExecutionMode, ProfileConfig, ProjectConfig, RenderConfig
+from cosmos import DbtDag, ExecutionConfig, ExecutionMode, ProfileConfig, ProjectConfig
 from cosmos.profiles import GoogleCloudServiceAccountDictProfileMapping
+from include.constants import BIGQUERY_DATASET, DBT_ADAPTER_VERSION, GCP_PROJECT_ID
 
 DBT_PROJECT_PATH = Path("/usr/local/airflow/dbt/altered_jaffle_shop")
 
-DBT_ADAPTER_VERSION = os.getenv("DBT_ADAPTER_VERSION", "1.9")
+
 
 profile_config = ProfileConfig(
-    profile_name="default",
+    profile_name="altered_jaffle_shop",
     target_name="dev",
     profile_mapping=GoogleCloudServiceAccountDictProfileMapping(
-        conn_id="gcp_gs_conn", profile_args={"dataset": "test_async", "project": "astronomer-airflow-providers"}
+        conn_id="gcp_gs_conn", profile_args={"dataset": BIGQUERY_DATASET, "project": GCP_PROJECT_ID}
     ),
 )
 
 
-# [START airflow_async_execution_mode_example]
-simple_dag_async = DbtDag(
+cosmos_bq_async = DbtDag(
     # dbt/cosmos-specific parameters
     project_config=ProjectConfig(DBT_PROJECT_PATH),
     profile_config=profile_config,
@@ -29,9 +29,9 @@ simple_dag_async = DbtDag(
     ),
     # normal dag parameters
     schedule=None,
-    start_date=datetime(2023, 1, 1),
+    start_date=datetime(2026, 1, 1),
     catchup=False,
-    dag_id="simple_dag_async",
+    dag_id="cosmos_bq_async",
     tags=["simple"],
     operator_args={
         "location": "US",
