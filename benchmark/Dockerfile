@@ -28,6 +28,7 @@ WORKDIR /app
 
 # Copy project files into the container
 COPY dbt/fhir-dbt-analytics /app
+COPY dbt/altered_jaffle_shop /app
 COPY benchmark/pre-process/profiles.yml /app/profiles.yml
 COPY benchmark/pre-process/key.json /app/key.json
 
