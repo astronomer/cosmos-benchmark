@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: airflow-test-dbtdag-watcher
+spec:
+  template:
+    spec:
+      containers:
+        - name: dbt
+          image: benchmark:0.0.3
+          command: ["airflow", "dags", "test", "example_dbt_dag_watcher"]
+          resources:
+            # Equivalent to Astro's A10 instance
+            requests:
+              cpu: "2"
+              memory: "4Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+      restartPolicy: Never
+  backoffLimit: 0
