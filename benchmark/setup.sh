@@ -17,7 +17,12 @@ helm install prometheus prometheus-community/kube-prometheus-stack \
   --namespace monitoring --create-namespace \
   --set prometheus.prometheusSpec.scrapeInterval="5s"
 
-# Wait for Prometheus pod to be ready
+# Wait for the Prometheus pod to be created by the operator (helm install
+# returns before the StatefulSet/pod exist), then wait for it to be ready.
+until kubectl get pod -l app.kubernetes.io/name=prometheus -n monitoring 2>/dev/null | grep -q prometheus; do
+  echo "Waiting for Prometheus pod to be created..."
+  sleep 2
+done
 kubectl wait --for=condition=ready pod \
   -l app.kubernetes.io/name=prometheus \
   -n monitoring --timeout=180s
