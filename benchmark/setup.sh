@@ -37,6 +37,12 @@ kubectl --context "${KUBE_CONTEXT}" wait --for=condition=ready pod \
 # (tracked by PID file + command-line match), then bail out if 9090 is still
 # bound by something unrelated — we don't want to kill arbitrary processes
 # the developer happens to have on that port.
+if ! command -v lsof >/dev/null 2>&1; then
+  echo "ERROR: 'lsof' is required to verify whether port 9090 is in use." >&2
+  echo "       Install lsof (e.g., 'brew install lsof' on macOS, 'apt-get install lsof' on Debian/Ubuntu) and re-run." >&2
+  exit 1
+fi
+
 PID_FILE="/tmp/cosmos-benchmark-prom-port-forward.pid"
 PORT_FORWARD_CMD_PATTERN='kubectl.*port-forward.*prometheus-kube-prometheus-prometheus.*9090'
 
