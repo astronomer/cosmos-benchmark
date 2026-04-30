@@ -28,8 +28,14 @@ WORKDIR /app
 
 # Copy project files into the container
 COPY dbt/fhir-dbt-analytics /app
+COPY dbt/altered_jaffle_shop /app
 COPY benchmark/pre-process/profiles.yml /app/profiles.yml
 COPY benchmark/pre-process/key.json /app/key.json
+
+# Pre-install dbt packages so cosmos can parse the project at DAG-load time
+# without needing to run `dbt deps` at runtime (cosmos is configured with
+# install_dbt_deps=False to keep benchmark numbers focused on execution).
+RUN dbt deps --project-dir /app
 
 # Specific for `dbt-core-run-per-model`
 COPY benchmark/experiment/scripts/run-dbt-core-per-model.sh /app/run-dbt-core-per-model.sh

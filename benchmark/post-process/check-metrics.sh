@@ -38,6 +38,10 @@ CPU_MAX=$(query_prometheus "$CPU_MAX_QUERY")
 CPU_STDDEV_QUERY="stddev_over_time(rate(container_cpu_usage_seconds_total{pod=\"$JOB_POD_NAME\", container=\"dbt\"}[1m])[${TIME_RANGE}:])"
 CPU_STDDEV=$(query_prometheus "$CPU_STDDEV_QUERY")
 
+# Cumulative CPU seconds consumed over the pod's lifetime (total compute work)
+CPU_TOTAL_QUERY="increase(container_cpu_usage_seconds_total{pod=\"$JOB_POD_NAME\", container=\"dbt\"}[${TIME_RANGE}])"
+CPU_TOTAL=$(query_prometheus "$CPU_TOTAL_QUERY")
+
 # Memory max usage over last 5 minutes
 MEM_MAX_QUERY="max_over_time(container_memory_usage_bytes{pod=\"$JOB_POD_NAME\", container=\"dbt\"}[${TIME_RANGE}])"
 MEM_MAX=$(query_prometheus "$MEM_MAX_QUERY")
@@ -51,6 +55,7 @@ echo "Metrics for Pod: $JOB_POD_NAME (last $TIME_RANGE)"
 echo "----------------------------------------------"
 echo "Max CPU Utilization (cores):    $CPU_MAX"
 echo "Stddev CPU Utilization (cores): $CPU_STDDEV"
+echo "Total CPU Seconds Consumed:     $CPU_TOTAL"
 
 bytes_to_human() {
   local b=${1%.*}
