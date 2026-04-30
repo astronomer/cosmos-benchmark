@@ -4,8 +4,12 @@ set -v
 set -x
 set -e
 
-# Create a Kind cluster
-kind create cluster
+# Create a Kind cluster (skip if it already exists)
+if kind get clusters | grep -q '^kind$'; then
+  echo "Kind cluster 'kind' already exists, skipping creation."
+else
+  kind create cluster
+fi
 
 # Add the necessary Helm repositories
 helm repo add apache-airflow https://airflow.apache.org
