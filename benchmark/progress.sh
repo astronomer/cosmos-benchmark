@@ -31,7 +31,7 @@ if [ -n "${POD:-}" ]; then
   echo "pod (from \$POD): $POD"
 else
   POD="$(kubectl --context "$KUBE_CONTEXT" get pods -l "job-name=$JOB_NAME" \
-           -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+           -o jsonpath='{.items[0].metadata.name}  --field-selector=status.phase=Running' 2>/dev/null || true)"
   if [ -z "$POD" ]; then
     echo "ERROR: no pod found for job $JOB_NAME in context $KUBE_CONTEXT." >&2
     echo "       The job may not be running yet, or it may have already finished and been deleted." >&2
