@@ -128,7 +128,7 @@ Regenerate it whenever the `dbt/fhir-dbt-analytics` submodule pin changes:
 cd dbt/fhir-dbt-analytics
 DBT_PROFILES_DIR=../../benchmark/pre-process \
 KEY_PATH=../../benchmark/pre-process/key.json \
-  dbt ls --output json > ../fhir-dbt-analytics-dbt-ls-output.json
+  dbt --quiet ls --output json > ../fhir-dbt-analytics-dbt-ls-output.json
 ```
 
-`DBT_PROFILES_DIR` points dbt at the benchmark profile (the submodule ships with a placeholder `profiles.yml` that isn't valid YAML), and `KEY_PATH` is the env var the profile templates in.
+`DBT_PROFILES_DIR` points dbt at the benchmark profile (the submodule ships with a placeholder `profiles.yml` that isn't valid YAML), and `KEY_PATH` is the env var the profile templates in. `--quiet` suppresses dbt's INFO log lines so only the JSON nodes land in the file (`progress.sh` tolerates noise lines, but a clean file is easier to diff).
