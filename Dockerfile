@@ -25,5 +25,11 @@ RUN pydantic==2.11.0
 #ENV OPENLINEAGE_DISABLED=True
 ENV AIRFLOW__CORE__LOAD_EXAMPLES=False
 ENV AIRFLOW__CORE__TEST_CONNECTION=Enabled
+# In async DAG getting error
+# sqlalchemy.exc.PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush.
+# To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: Can't flush None value found in collection DatasetModel.aliases (Background on this error at: https://sqlalche.me/e/14/7s2a)
+ENV AIRFLOW__COSMOS__ENABLE_DATASET_ALIAS=False
 
 USER astro
+
+RUN airflow db migrate
