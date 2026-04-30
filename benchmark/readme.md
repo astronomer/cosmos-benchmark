@@ -108,3 +108,28 @@ Results
 
 The data printed to the console has been copied to this Google Spreadsheet:
 https://docs.google.com/spreadsheets/d/10c6hMjwBJZ1DybiJT8o0TApVPyk-oPuJCY01bj2zC0A/edit?gid=0#gid=0
+
+Checking progress mid-run
+-------------------------
+
+For long-running jobs (notably `airflow-test-dbtdag`), `progress.sh` reports how many models have been completed so far by counting `Marking task as SUCCESS` lines in the pod logs:
+
+```
+./progress.sh                                # auto-detects the airflow-test-dbtdag pod
+POD=airflow-test-dbtdag-abc ./progress.sh    # use a specific pod
+```
+
+The script requires the pod to be live (`kubectl logs` against it) — it has nothing useful to say once the job has finished and `run-test.sh` has deleted it.
+
+The script reads the dbt project's full DAG from `dbt/fhir-dbt-analytics-dbt-ls-output.json`, which is a snapshot of `dbt ls --output json` for the dbt project pinned via the submodule. The file is checked into the repo so progress.sh works without a local dbt install.
+
+Regenerate it whenever the `dbt/fhir-dbt-analytics` submodule pin changes:
+
+```
+cd dbt/fhir-dbt-analytics
+DBT_PROFILES_DIR=../../benchmark/pre-process \
+KEY_PATH=../../benchmark/pre-process/key.json \
+  dbt --quiet ls --output json > ../fhir-dbt-analytics-dbt-ls-output.json
+```
+
+`DBT_PROFILES_DIR` points dbt at the benchmark profile (the submodule ships with a placeholder `profiles.yml` that isn't valid YAML), and `KEY_PATH` is the env var the profile templates in. `--quiet` suppresses dbt's INFO log lines so only the JSON nodes land in the file (`progress.sh` tolerates noise lines, but a clean file is easier to diff).

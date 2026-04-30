@@ -1,0 +1,5 @@
+model_name,array_x,array_y
+customers_slow_query,2000,2000
+long_model_cross_random,2000,2000
+long_model_text_processing,2000,2000
+long_model_subquery_windows,2000,1
