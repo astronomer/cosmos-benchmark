@@ -23,7 +23,7 @@ for job in $JOBS; do
     echo Start time: $(date +"%Y-%m-%dT%H:%M:%S%z")
     kubectl delete job "$job" --ignore-not-found
     kubectl apply -f "experiment/$job.yaml"
-    kubectl wait --for=condition=complete job/$job --timeout=3000s
+    kubectl wait --for=condition=complete job/$job --timeout=7200s
     echo End time: $(date +"%Y-%m-%dT%H:%M:%S%z")
     sleep 40
     ./post-process/check-metrics.sh "$job"
