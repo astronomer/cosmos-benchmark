@@ -20,7 +20,7 @@ RUN pip install "dbt-core<1.10"
 RUN pip install dbt-bigquery
 RUN pip install dbt-postgres
 RUN pip install dbt-snowflake
-RUN pydantic==2.11.0
+RUN pip install pydantic==2.11.0
 
 #ENV OPENLINEAGE_DISABLED=True
 ENV AIRFLOW__CORE__LOAD_EXAMPLES=False
