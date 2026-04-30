@@ -3,6 +3,41 @@
 set -x
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KEY_FILE="$SCRIPT_DIR/pre-process/key.json"
+
+# Fail fast if the GCP service account key is missing or no longer valid,
+# rather than discovering it deep inside a benchmark run.
+if [ ! -s "$KEY_FILE" ]; then
+  echo "ERROR: $KEY_FILE is missing or empty."
+  echo "Download a fresh service account JSON key from GCP project 'astronomer-dag-authoring' and save it to that path."
+  exit 1
+fi
+
+python3 - "$KEY_FILE" <<'PY' || exit 1
+import sys
+key_path = sys.argv[1]
+try:
+    from google.oauth2 import service_account
+    from google.auth.transport.requests import Request
+except ImportError:
+    print(f"WARN: google-auth not installed locally; skipping {key_path} validation.", file=sys.stderr)
+    print("      Install with: pip install google-auth", file=sys.stderr)
+    sys.exit(0)
+try:
+    creds = service_account.Credentials.from_service_account_file(
+        key_path,
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+    )
+    creds.refresh(Request())
+except Exception as e:
+    print(f"ERROR: {key_path} failed to authenticate with GCP: {e}", file=sys.stderr)
+    print("The key has likely been rotated or revoked.", file=sys.stderr)
+    print("Download a fresh JSON key from GCP and replace this file.", file=sys.stderr)
+    sys.exit(1)
+print(f"OK: {key_path} successfully obtained a GCP access token.")
+PY
+
 # Pin every kubectl/helm call below to the kind cluster's context so reruns
 # can't accidentally target whatever cluster the user's current kube-context
 # happens to point at.
