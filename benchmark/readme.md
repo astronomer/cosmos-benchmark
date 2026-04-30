@@ -115,10 +115,11 @@ Checking progress mid-run
 For long-running jobs (notably `airflow-test-dbtdag`), `progress.sh` reports how many models have been completed so far by counting `Marking task as SUCCESS` lines in the pod logs:
 
 ```
-./progress.sh                          # auto-detects the airflow-test-dbtdag pod
-POD=airflow-test-dbtdag-abc ./progress.sh   # use a specific pod
-./progress.sh <model_name>             # fallback (no pod): approximate topological-position estimate
+./progress.sh                                # auto-detects the airflow-test-dbtdag pod
+POD=airflow-test-dbtdag-abc ./progress.sh    # use a specific pod
 ```
+
+The script requires the pod to be live (`kubectl logs` against it) — it has nothing useful to say once the job has finished and `run-test.sh` has deleted it.
 
 The script reads the dbt project's full DAG from `dbt/fhir-dbt-analytics-dbt-ls-output.json`, which is a snapshot of `dbt ls --output json` for the dbt project pinned via the submodule. The file is checked into the repo so progress.sh works without a local dbt install.
 
