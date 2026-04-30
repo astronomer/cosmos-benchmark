@@ -31,13 +31,39 @@ kubectl --context "${KUBE_CONTEXT}" wait --for=condition=ready pod \
   -l app.kubernetes.io/name=prometheus \
   -n monitoring --timeout=180s
 
-# Expose Prometheus to the host so we can fetch metrics
-# (kill any existing port-forward on 9090 before starting a new one)
-if lsof -ti:9090 >/dev/null 2>&1; then
-  echo "Port 9090 already in use, killing existing process(es)."
-  lsof -ti:9090 | xargs kill -9 || true
+# Expose Prometheus to the host so we can fetch metrics.
+#
+# Stop only the port-forward that this script started in a previous run
+# (tracked by PID file + command-line match), then bail out if 9090 is still
+# bound by something unrelated — we don't want to kill arbitrary processes
+# the developer happens to have on that port.
+PID_FILE="/tmp/cosmos-benchmark-prom-port-forward.pid"
+PORT_FORWARD_CMD_PATTERN='kubectl.*port-forward.*prometheus-kube-prometheus-prometheus.*9090'
+
+if [ -f "$PID_FILE" ]; then
+  prev_pid="$(cat "$PID_FILE" 2>/dev/null || true)"
+  if [ -n "$prev_pid" ] \
+       && kill -0 "$prev_pid" 2>/dev/null \
+       && ps -p "$prev_pid" -o command= 2>/dev/null | grep -Eq "$PORT_FORWARD_CMD_PATTERN"; then
+    echo "Stopping previous Prometheus port-forward (pid $prev_pid)."
+    kill "$prev_pid" 2>/dev/null || true
+    # Give the OS a moment to release the port before the bind check below.
+    for _ in 1 2 3 4 5; do
+      lsof -ti:9090 >/dev/null 2>&1 || break
+      sleep 1
+    done
+  fi
+  rm -f "$PID_FILE"
 fi
+
+if lsof -ti:9090 >/dev/null 2>&1; then
+  echo "ERROR: port 9090 is in use by another process (not this script's port-forward)."
+  echo "       Investigate with: lsof -i:9090   then free the port and re-run."
+  exit 1
+fi
+
 kubectl --context "${KUBE_CONTEXT}" port-forward svc/prometheus-kube-prometheus-prometheus -n monitoring 9090 &
+echo $! > "$PID_FILE"
 
 # Build the docker image that will be used to run the experiments
 cd ..; docker build -t benchmark:0.0.3 -f benchmark/Dockerfile .
