@@ -67,9 +67,12 @@ until kubectl --context "${KUBE_CONTEXT}" get pod -l app.kubernetes.io/name=prom
   echo "Waiting for Prometheus pod to be created..."
   sleep 2
 done
+# Bumped to 900s so the wait survives a fresh kind cluster having to pull
+# the Prometheus + config-reloader images (~150MB total). Observed the
+# config-reloader image alone take ~11 minutes to pull on a cold node.
 kubectl --context "${KUBE_CONTEXT}" wait --for=condition=ready pod \
   -l app.kubernetes.io/name=prometheus \
-  -n monitoring --timeout=180s
+  -n monitoring --timeout=900s
 
 # Expose Prometheus to the host so we can fetch metrics.
 #
