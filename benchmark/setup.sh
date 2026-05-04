@@ -111,7 +111,13 @@ if lsof -ti:9090 >/dev/null 2>&1; then
   exit 1
 fi
 
-kubectl --context "${KUBE_CONTEXT}" port-forward svc/prometheus-kube-prometheus-prometheus -n monitoring 9090 &
+# Redirect kubectl's per-connection chatter ("Handling connection for 9090") to
+# a log file so it doesn't interleave with run-test.sh output. The file is
+# overwritten on each setup.sh run and is still inspectable if the port-forward
+# misbehaves later.
+PORT_FORWARD_LOG="/tmp/cosmos-benchmark-prom-port-forward.log"
+kubectl --context "${KUBE_CONTEXT}" port-forward svc/prometheus-kube-prometheus-prometheus -n monitoring 9090 \
+  >"$PORT_FORWARD_LOG" 2>&1 &
 echo $! > "$PID_FILE"
 
 # Build the docker image that will be used to run the experiments
