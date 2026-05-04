@@ -12,8 +12,8 @@ try:
 except ImportError:
     from airflow.utils.dag_parsing_context import get_parsing_context
 
-from cosmos import DbtDag, ProjectConfig, ProfileConfig, RenderConfig
-from cosmos.constants import TestBehavior 
+from cosmos import DbtDag, ProjectConfig, ProfileConfig, RenderConfig, ExecutionConfig
+from cosmos.constants import TestBehavior, ExecutionMode
 from cosmos import DbtBuildLocalOperator, DbtRunLocalOperator, DbtSeedLocalOperator, DbtTestLocalOperator
 
 
@@ -37,9 +37,22 @@ if current_dag_id is None or current_dag_id == "example_dbt_dag":
         project_config=project_config,
         profile_config=profile_config,
         render_config=RenderConfig(test_behavior=TestBehavior.NONE),
-        schedule_interval=None,
+        schedule=None,
         catchup=False,
         dag_id="example_dbt_dag",
+        tags=["profiles"],
+        is_paused_upon_creation=False
+    )
+
+if current_dag_id is None or current_dag_id == "example_dbt_dag_watcher":
+    example_dbt_dag_watcher = DbtDag(
+        project_config=project_config,
+        profile_config=profile_config,
+        execution_config=ExecutionConfig(execution_mode=ExecutionMode.WATCHER),
+        render_config=RenderConfig(test_behavior=TestBehavior.NONE),
+        schedule=None,
+        catchup=False,
+        dag_id="example_dbt_dag_watcher",
         tags=["profiles"],
         is_paused_upon_creation=False
     )
@@ -47,7 +60,7 @@ if current_dag_id is None or current_dag_id == "example_dbt_dag":
 if current_dag_id is None or current_dag_id == "example_operator_build":
         with DAG(
           "example_operator_build",
-          schedule_interval=None,
+          schedule=None,
           catchup=False,
           is_paused_upon_creation=False
         ) as dag:

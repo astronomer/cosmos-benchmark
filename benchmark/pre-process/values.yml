@@ -1,0 +1,46 @@
+executor: CeleryExecutor
+
+images:
+  airflow:
+    repository: benchmark
+    tag: 0.0.6
+
+config:
+  core:
+    dags_are_paused_at_creation: "False"
+    parallelism: "16"
+  celery:
+    worker_concurrency: "4"
+  cosmos:
+    watcher_dbt_execution_queue: "producer"
+
+postgresql:
+  image:
+    repository: postgres
+    tag: latest
+
+scheduler:
+  resources:
+    requests:
+      cpu: "2"
+      memory: "4Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+
+# Default workers act as the WATCHER consumer pool (sensors on the `default` queue).
+# Producer workers are deployed separately via pre-process/producer-worker.yaml so we
+# can give them dedicated resources and scrape them as a distinct Prometheus group.
+# We use a Deployment (persistence disabled) so consumer pods get hash-suffixed
+# names matching `airflow-worker-.+`, distinct from `airflow-producer-worker-.+`.
+workers:
+  replicas: 2
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: "2"
+      memory: "4Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"

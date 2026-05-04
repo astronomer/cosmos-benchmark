@@ -121,5 +121,40 @@ kubectl --context "${KUBE_CONTEXT}" port-forward svc/prometheus-kube-prometheus-
 echo $! > "$PID_FILE"
 
 # Build the docker image that will be used to run the experiments
-cd ..; docker build -t benchmark:0.0.3 -f benchmark/Dockerfile .
-kind load docker-image benchmark:0.0.3
+cd ..; docker build -t benchmark:0.0.6 -f benchmark/Dockerfile .
+kind load --name "${KIND_CLUSTER}" docker-image benchmark:0.0.6
+cd benchmark
+
+# --- Distributed Airflow setup for Helm-based benchmark experiments. -----------
+# Chart 1.21.0 ships Airflow 3.2.0 (api-server replaces the legacy webserver);
+# the image installed via requirements.txt must match (apache-airflow==3.2.0).
+
+kubectl --context "${KUBE_CONTEXT}" create namespace airflow --dry-run=client -o yaml \
+  | kubectl --context "${KUBE_CONTEXT}" apply -f -
+
+helm --kube-context "${KUBE_CONTEXT}" upgrade --install airflow apache-airflow/airflow \
+  --version 1.21.0 \
+  --namespace airflow \
+  -f pre-process/values.yml
+
+# Wait for the chart's default (consumer) worker pods so the rendered Deployment
+# is fully materialised before we copy its spec for the producer pool.
+kubectl --context "${KUBE_CONTEXT}" -n airflow rollout status deployment/airflow-worker --timeout=600s
+
+# Deploy the dedicated producer worker pool. The manifest is derived from the
+# chart's rendered worker Deployment so ServiceAccount / ConfigMap / Secret
+# references stay in sync with whatever the chart wired up — we only override
+# queue, labels, replicas and resources. Tunable per run via env vars:
+#   PRODUCER_REPLICAS PRODUCER_CPU PRODUCER_MEM PRODUCER_QUEUE
+PRODUCER_REPLICAS="${PRODUCER_REPLICAS:-1}" \
+PRODUCER_CPU="${PRODUCER_CPU:-4}" \
+PRODUCER_MEM="${PRODUCER_MEM:-8Gi}" \
+PRODUCER_QUEUE="${PRODUCER_QUEUE:-producer}" \
+  kubectl --context "${KUBE_CONTEXT}" -n airflow get deployment airflow-worker -o json \
+  | python3 pre-process/render-producer-worker.py \
+  | kubectl --context "${KUBE_CONTEXT}" -n airflow apply -f -
+
+kubectl --context "${KUBE_CONTEXT}" -n airflow rollout status deployment/airflow-producer-worker --timeout=600s
+
+# Expose the api-server so we can trigger DAG runs from outside the cluster.
+kubectl --context "${KUBE_CONTEXT}" port-forward svc/airflow-api-server 8080:8080 -n airflow &
