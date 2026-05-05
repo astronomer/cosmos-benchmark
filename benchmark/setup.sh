@@ -61,10 +61,18 @@ helm --kube-context "${KUBE_CONTEXT}" upgrade --install prometheus prometheus-co
   --namespace monitoring --create-namespace \
   --set prometheus.prometheusSpec.scrapeInterval="5s"
 
-# Wait for Prometheus pod to be ready
+# Wait for the Prometheus pod to be created by the operator (helm install
+# returns before the StatefulSet/pod exist), then wait for it to be ready.
+until kubectl --context "${KUBE_CONTEXT}" get pod -l app.kubernetes.io/name=prometheus -n monitoring 2>/dev/null | grep -q prometheus; do
+  echo "Waiting for Prometheus pod to be created..."
+  sleep 2
+done
+# Bumped to 900s so the wait survives a fresh kind cluster having to pull
+# the Prometheus + config-reloader images (~150MB total). Observed the
+# config-reloader image alone take ~11 minutes to pull on a cold node.
 kubectl --context "${KUBE_CONTEXT}" wait --for=condition=ready pod \
   -l app.kubernetes.io/name=prometheus \
-  -n monitoring --timeout=180s
+  -n monitoring --timeout=900s
 
 # Expose Prometheus to the host so we can fetch metrics.
 #
@@ -103,7 +111,13 @@ if lsof -ti:9090 >/dev/null 2>&1; then
   exit 1
 fi
 
-kubectl --context "${KUBE_CONTEXT}" port-forward svc/prometheus-kube-prometheus-prometheus -n monitoring 9090 &
+# Redirect kubectl's per-connection chatter ("Handling connection for 9090") to
+# a log file so it doesn't interleave with run-test.sh output. The file is
+# overwritten on each setup.sh run and is still inspectable if the port-forward
+# misbehaves later.
+PORT_FORWARD_LOG="/tmp/cosmos-benchmark-prom-port-forward.log"
+kubectl --context "${KUBE_CONTEXT}" port-forward svc/prometheus-kube-prometheus-prometheus -n monitoring 9090 \
+  >"$PORT_FORWARD_LOG" 2>&1 &
 echo $! > "$PID_FILE"
 
 # Build the docker image that will be used to run the experiments
