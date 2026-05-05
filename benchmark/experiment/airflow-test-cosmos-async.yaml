@@ -6,7 +6,7 @@ spec:
   template:
     spec:
       containers:
-        - name: dbt
+        - name: cosmos-async
           image: benchmark:0.0.3
           imagePullPolicy: Never
           command: ["airflow", "dags", "test", "cosmos_bq_async"]
