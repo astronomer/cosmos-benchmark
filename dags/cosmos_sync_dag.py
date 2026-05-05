@@ -2,8 +2,19 @@ from datetime import datetime
 from pathlib import Path
 
 from cosmos import DbtDag, ExecutionConfig, ExecutionMode, ProfileConfig, ProjectConfig
+from cosmos.operators._asynchronous.bigquery import DbtRunAirflowAsyncBigqueryOperator
 from cosmos.profiles import GoogleCloudServiceAccountDictProfileMapping
 from include.constants import BIGQUERY_DATASET, DBT_ADAPTER_VERSION, GCP_PROJECT_ID
+
+_orig_init = DbtRunAirflowAsyncBigqueryOperator.__init__
+
+
+def _patched_init(self, *args, **kwargs):
+    _orig_init(self, *args, **kwargs)
+    self.deferrable = False
+
+
+DbtRunAirflowAsyncBigqueryOperator.__init__ = _patched_init
 
 DBT_PROJECT_PATH = Path("/usr/local/airflow/dbt/altered_jaffle_shop")
 
@@ -36,6 +47,5 @@ cosmos_bq_sync = DbtDag(
         "location": "US",
         "install_deps": True,
         "full_refresh": True,
-        "deferrable": False,
     },
 )
