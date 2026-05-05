@@ -6,8 +6,8 @@ spec:
   template:
     spec:
       containers:
-        - name: airflow
-          image: cosmos-benchmark:0.0.3
+        - name: cosmos-async
+          image: benchmark:0.0.3
           imagePullPolicy: Never
           command: ["airflow", "dags", "test", "cosmos_bq_async"]
           env:
