@@ -1,5 +1,5 @@
 
-astronomer-cosmos==1.14.1
+astronomer-cosmos
 
 apache-airflow-providers-amazon[s3fs]
 apache-airflow-providers-microsoft-azure
