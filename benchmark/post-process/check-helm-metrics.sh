@@ -94,3 +94,8 @@ echo "================================================================="
 # "airflow-producer-worker-..." pods.
 report_pool "producer" "airflow-producer-worker-.+"
 report_pool "consumer" "airflow-worker-.+"
+
+# Combined view — useful for an apples-to-apples LOCAL-vs-WATCHER comparison,
+# because LOCAL has no producer task at all so its producer pool sits idle.
+# This row sums the two pools so totals reflect cluster-wide work.
+report_pool "total (producer + consumer)" "airflow(-producer)?-worker-.+"
