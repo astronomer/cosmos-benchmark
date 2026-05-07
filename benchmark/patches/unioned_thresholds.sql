@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 #}
+{# Modified 2026-05 by Astronomer / cosmos-benchmark — see patch block below. #}
 {#
   cosmos-benchmark patch:
   Upstream uses `adapter.get_relation(...)` to look up the threshold seeds at
