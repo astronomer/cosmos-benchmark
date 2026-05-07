@@ -28,6 +28,11 @@ COPY --chown=airflow:0 dbt/fhir-dbt-analytics /opt/airflow
 COPY --chown=airflow:0 benchmark/pre-process/profiles.yml /opt/airflow/profiles.yml
 COPY --chown=airflow:0 benchmark/pre-process/key.json /opt/airflow/key.json
 
+# Overlay benchmark-local patches to upstream dbt project files. Each patch
+# replaces a single upstream file to fix issues that cause flaky benchmark
+# failures. See benchmark/patches/<filename> for the rationale per patch.
+COPY --chown=airflow:0 benchmark/patches/unioned_thresholds.sql /opt/airflow/models/metadata/unioned_thresholds.sql
+
 # Used by `dbt-core-run-per-model` Job-based experiment.
 COPY --chown=airflow:0 benchmark/experiment/scripts/run-dbt-core-per-model.sh /opt/airflow/run-dbt-core-per-model.sh
 
