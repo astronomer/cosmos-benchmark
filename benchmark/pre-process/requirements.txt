@@ -1,2 +1,2 @@
 dbt-bigquery==1.9
-astronomer-cosmos==1.14.1
+astronomer-cosmos
