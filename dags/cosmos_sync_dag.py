@@ -6,16 +6,6 @@ from cosmos.operators._asynchronous.bigquery import DbtRunAirflowAsyncBigqueryOp
 from cosmos.profiles import GoogleCloudServiceAccountDictProfileMapping
 from include.constants import BIGQUERY_DATASET, DBT_ADAPTER_VERSION, GCP_PROJECT_ID
 
-_orig_init = DbtRunAirflowAsyncBigqueryOperator.__init__
-
-
-def _patched_init(self, *args, **kwargs):
-    _orig_init(self, *args, **kwargs)
-    self.deferrable = False
-
-
-DbtRunAirflowAsyncBigqueryOperator.__init__ = _patched_init
-
 DBT_PROJECT_PATH = Path("/usr/local/airflow/dbt/altered_jaffle_shop")
 
 
@@ -49,3 +39,7 @@ cosmos_bq_sync = DbtDag(
         "full_refresh": True,
     },
 )
+
+for task in cosmos_bq_sync.tasks:
+    if isinstance(task, DbtRunAirflowAsyncBigqueryOperator):
+        task.deferrable = False
