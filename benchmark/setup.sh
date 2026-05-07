@@ -146,12 +146,16 @@ kubectl --context "${KUBE_CONTEXT}" -n airflow rollout status deployment/airflow
 # references stay in sync with whatever the chart wired up — we only override
 # queue, labels, replicas and resources. Tunable per run via env vars:
 #   PRODUCER_REPLICAS PRODUCER_CPU PRODUCER_MEM PRODUCER_QUEUE
-PRODUCER_REPLICAS="${PRODUCER_REPLICAS:-1}" \
-PRODUCER_CPU="${PRODUCER_CPU:-4}" \
-PRODUCER_MEM="${PRODUCER_MEM:-8Gi}" \
-PRODUCER_QUEUE="${PRODUCER_QUEUE:-producer}" \
-  kubectl --context "${KUBE_CONTEXT}" -n airflow get deployment airflow-worker -o json \
-  | python3 pre-process/render-producer-worker.py \
+#
+# The env-var assignments must hug the python3 invocation — putting them
+# before `kubectl` would scope them to kubectl's environment only and leave
+# the renderer with its built-in defaults (cpu=4 / mem=8Gi).
+kubectl --context "${KUBE_CONTEXT}" -n airflow get deployment airflow-worker -o json \
+  | PRODUCER_REPLICAS="${PRODUCER_REPLICAS:-1}" \
+    PRODUCER_CPU="${PRODUCER_CPU:-4}" \
+    PRODUCER_MEM="${PRODUCER_MEM:-8Gi}" \
+    PRODUCER_QUEUE="${PRODUCER_QUEUE:-producer}" \
+    python3 pre-process/render-producer-worker.py \
   | kubectl --context "${KUBE_CONTEXT}" -n airflow apply -f -
 
 kubectl --context "${KUBE_CONTEXT}" -n airflow rollout status deployment/airflow-producer-worker --timeout=600s

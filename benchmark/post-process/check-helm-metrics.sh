@@ -54,12 +54,24 @@ query_prometheus() {
 }
 
 bytes_to_human() {
+  # Always emit MiB once we are over the KiB range so callers can compare
+  # values across runs without losing precision to GiB truncation. Anything
+  # in the GiB range gets shown as e.g. "9785 MiB (9.55 GiB)".
   local b=${1%.*}
   b=${b:-0}
-  if (( b < 1024 )); then echo "${b} B"
-  elif (( b < 1048576 )); then echo "$((b / 1024)) KiB"
-  elif (( b < 1073741824 )); then echo "$((b / 1048576)) MiB"
-  else echo "$((b / 1073741824)) GiB"
+  if (( b < 1024 )); then
+    echo "${b} B"
+  elif (( b < 1048576 )); then
+    echo "$((b / 1024)) KiB"
+  else
+    local mib=$((b / 1048576))
+    local gib_q=$((mib / 1024))
+    local gib_r=$(( (mib * 100 / 1024) % 100 ))
+    if (( mib >= 1024 )); then
+      printf "%d MiB (%d.%02d GiB)\n" "$mib" "$gib_q" "$gib_r"
+    else
+      printf "%d MiB\n" "$mib"
+    fi
   fi
 }
 
