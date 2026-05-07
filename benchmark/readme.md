@@ -15,96 +15,160 @@ For the tests to be fair, except for dbt Cloud (since we don't control it), we w
 
 As a starting point, we are running the tests against a local Kubernetes cluster, but if we want a further level of isolation, we could run them against any managed cluster.
 
+Benchmarking LOCAL vs WATCHER execution mode
+============================================
+
+This is a Helm-based benchmark path that compares Cosmos' LOCAL execution mode against WATCHER mode end-to-end on a real Airflow installation. It deploys the official Apache Airflow Helm chart on Kind, with two worker pools — a dedicated **producer** pool that runs `dbt build` and a **consumer** pool that runs the per-model sensor tasks — and a Prometheus stack to scrape per-pool CPU and memory.
+
+Use this path when you want apples-to-apples wall-time and resource numbers for `example_dbt_dag` (LOCAL) versus `example_dbt_dag_watcher` (WATCHER) on the same cluster.
+
 Requirements
 ------------
 
-Install the following tools:
-* Docker or equivalent tool.
-* Kind
+Install on the host:
+* Docker
+* `kind`, `kubectl`, `helm`
+* `lsof` (preinstalled on macOS; `apt-get install lsof` on Debian/Ubuntu) — used by `setup.sh` for port-forward safety
+* `jq`, `python3` (preinstalled on macOS)
 
-Create a file called `key.json` inside the folder `benchmark/pre-process`, which contains the credentials to access the BigQuery instance of interest. While we are running locally, this approach is acceptable. If we are using a hosted K8s cluster, we should use K8s secrets or another more secure approach.
+Provide credentials:
+* `benchmark/pre-process/key.json` — GCP service-account JSON with BigQuery access. `setup.sh` validates this key before doing any work.
+* If you target a different BigQuery project / dataset, update `benchmark/pre-process/profiles.yml` accordingly.
 
-Update the `profiles.yml`  file in the pre-process to reference your BigQuery dataset and related Google project.
-
-Analysing performance
----------------------
-
-As a first step, we'll analyse dbt-core commands performance.
-This approach will be extended to run Airflow.
-
-To run this analysis, run the following scripts:
-
-1. Firstly, run the pre-process, by running:
+Initialize the dbt project submodule once from the repo root:
 
 ```
+git submodule init
+git submodule update
+```
+
+Setup
+-----
+
+From the repo root:
+
+```
+cd benchmark
 ./setup.sh
 ```
 
-This command will
-- create a K8s cluster with Kind
-- build the docker image with dbt Core, the dbt project and credentials to access the Data Warehouse
-- make the docker image available to the K8s cluster
-- install Prometheus in the cluster, so we can fetch metrics
-- expose Prometheus in the host via port 9090
+`setup.sh` is idempotent and:
 
-2. Second, run the experiments of interest by running:
+1. Creates the `kind` cluster (skips if it already exists).
+2. Validates `benchmark/pre-process/key.json` against GCP.
+3. Installs `kube-prometheus-stack` into the `monitoring` namespace and port-forwards Prometheus on `localhost:9090`.
+4. Builds the benchmark image (`apache/airflow:3.2.0` base + `dbt-bigquery` + `astronomer-cosmos`) and loads it into the kind node.
+5. Installs the Apache Airflow Helm chart `1.21.0` into the `airflow` namespace using `pre-process/values.yml`.
+6. Renders and applies a dedicated **producer** worker `Deployment` (derived from the chart's worker `Deployment` so ServiceAccount / ConfigMap / Secret references stay in sync).
+7. Port-forwards the Airflow `api-server` on `localhost:8080`.
 
-```
-./run-test.sh
-```
-
-Each experiment is defined as K8s jobs in the folder `experiment`. These are the jobs available:
-- dbt-core-build: Runs `dbt build` against `fhir-dbt-analytics`
-- dbt-core-run: Run the `dbt run` command against the dbt project `fhir-dbt-analytics`
-- dbt-core-seed: Run the `dbt seed` command against the dbt project `fhir-dbt-analytics`
-- dbt-core-test: Run the `dbt test` command against the dbt project `fhir-dbt-analytics`
-- dbt-core-run-per-model: Run sequential `dbt run` commands for each model of the project dbt project `fhir-dbt-analytics` (185 models)
-- airflow-test-dbtdag: Run `airflow dags test` against a Cosmos `DbtDag` that creates one individual Airflow task per dbt model
-- airflow-test-buildoperator: Run `airflow dags test` using a DAG that instantiates Cosmos' `DbtBuildLocalOperator` and runs the dbt project `fhir-dbt-analytics` using a single Airflow task
-
-By default, the job `dbt-core-run-per-model` is run.
-
-By default, each selected experiment will be run 3 times.
-
-For each experiment, the following steps are completed:
-- create a K8s job
-- execute the K8s job in the Kind cluster
-- collect the metrics for that job
-- delete the job
-
-The experiments run and the amount of repetitions can be configured by setting environment variables via command line, as illustrated below:
-```
-JOBS="dbt-core-build dbt-core-run" REPS=3 ./run-test.sh
-```
-
-3. The collected metrics are printed in the terminal, example:
+The producer pool is env-tunable per run:
 
 ```
-=== Run #1 for dbt-core-build ===
-Start time: 2025-10-07T03:33:24-0700
-job.batch "dbt-core-build" deleted
-job.batch/dbt-core-build created
-job.batch/dbt-core-build condition met
-End time: 2025-10-07T03:38:10-0700
-Fetching metrics for pod: dbt-core-build-54h4q
-
-Metrics for Pod: dbt-core-build-54h4q (last 240h)
-----------------------------------------------
-Max CPU Utilization (cores):    0.13957793105490057
-Stddev CPU Utilization (cores): 0.02129759725801408
-Max Memory Usage:     402 MiB
-Stddev Memory Usage:  83 MiB
-Job Duration: 00:04:44
-job.batch "dbt-core-build" deleted
-
-3. To delete the cluster, once you finished running the tests:
-
-```
-./teardown.sh
+PRODUCER_REPLICAS=1 PRODUCER_CPU=1 PRODUCER_MEM=2Gi PRODUCER_QUEUE=producer ./setup.sh
 ```
 
-Results
--------
+Running a benchmark
+-------------------
+
+The DAGs available are:
+
+* `example_dbt_dag` — Cosmos LOCAL mode, one Airflow task per dbt model.
+* `example_dbt_dag_watcher` — Cosmos WATCHER mode (one producer task that runs `dbt build`, one sensor per model that watches XCom).
+* `example_operator_build` — single `DbtBuildLocalOperator` task.
+
+```
+cd benchmark
+DAGS="example_dbt_dag_watcher" REPS=1 ./run-complex-test.sh
+```
+
+`DAGS` accepts any combination of the three DAG ids; default is all three. `REPS` defaults to 1.
+
+After each DAG run, `run-complex-test.sh` calls `./post-process/check-helm-metrics.sh <dag-name>`, which reports:
+
+* Wall-time of the run (from Airflow metadata).
+* Producer pool, consumer pool, and total cluster CPU / memory **scoped to the DAG-run window** (so historical pod incarnations don't pollute the totals).
+
+The metrics are produced by querying Prometheus through the port-forward — same port `setup.sh` exposes on `localhost:9090`.
+
+Tweaking config without editing values.yml
+------------------------------------------
+
+Different producer sizing on the next setup run:
+
+```
+PRODUCER_CPU=1 PRODUCER_MEM=2Gi ./setup.sh
+```
+
+Different consumer sizing (in-place, no re-setup needed):
+
+```
+helm --kube-context kind-kind upgrade airflow apache-airflow/airflow --version 1.21.0 \
+  -n airflow -f pre-process/values.yml \
+  --set workers.replicas=9 \
+  --set workers.resources.requests.cpu=1 --set workers.resources.limits.cpu=1 \
+  --set workers.resources.requests.memory=2Gi --set workers.resources.limits.memory=2Gi \
+  --set config.celery.worker_concurrency=2
+```
+
+Different dbt `threads` for WATCHER (the producer's `dbt build` honours this; LOCAL ignores it because each task selects a single model):
+
+```
+PROD=$(kubectl --context kind-kind -n airflow get pod -l cosmos-role=producer -o jsonpath='{.items[0].metadata.name}')
+sed 's/threads: 4/threads: 16/' pre-process/profiles.yml > /tmp/p.yml
+kubectl --context kind-kind cp -n airflow /tmp/p.yml "$PROD":/opt/airflow/profiles.yml -c worker
+```
+
+Teardown
+--------
+
+```
+kind delete cluster --name kind
+```
+
+Results: LOCAL vs WATCHER (2026-05-08)
+======================================
+
+Cluster config (identical for every column):
+
+* Apache Airflow Helm chart `1.21.0` (Airflow `3.2.0`), Cosmos `1.14.1`, dbt-bigquery `1.9`
+* **Producer pool**: 1 replica × `cpu=1 / memory=2Gi` (right-sized down from 4cpu/8Gi)
+* **Consumer pool**: 9 replicas × `cpu=1 / memory=2Gi` × `worker_concurrency=2` → **18 task slots, 9 cores total**
+* Airflow `parallelism=16`
+* Cosmos: `watcher_dbt_execution_queue=producer`
+* dbt project: `fhir-dbt-analytics` (187 models), with the `unioned_thresholds.sql` patch declaring its seed dependency
+
+| Metric                                                                 | **LOCAL**   | **WATCHER `threads=4`**  | **WATCHER `threads=8`**  | **WATCHER `threads=12`**  | **WATCHER `threads=16`**  |
+| :--------------------------------------------------------------------- | ----------: | -----------------------: | -----------------------: | ------------------------: | ------------------------: |
+| **DAG wall time**                                                      | **572 s**   |                **443 s** |                **266 s** |                 **233 s** |                 **215 s** |
+| Δ vs LOCAL                                                             | baseline    |                     −23% |                     −53% |                      −59% |                  **−62%** |
+| Result                                                                 | ✅ 187/187  |               ✅ 188/188 |               ✅ 188/188 |                ✅ 188/188 |                ✅ 188/188 |
+| Producer task duration                                                 | n/a         |                    433 s |                    252 s |                     199 s |                     163 s |
+| Tail (DAG − producer)                                                  | n/a         |                     10 s |                     14 s |                      34 s |                      52 s |
+| **Producer pool** (1 pod, `1cpu / 2GiB`)                               |             |                          |                          |                           |                           |
+| · max CPU (cores) / % of 1 cpu                                         | n/a         |               0.25 (25%) |               0.43 (43%) |                0.66 (66%) |                0.75 (75%) |
+| · total CPU (s)                                                        | n/a         |                       85 |                       92 |                       101 |                        96 |
+| · peak memory (MiB) / % of 2 GiB                                       | n/a         |                918 (45%) |                952 (46%) |                 949 (46%) |                 970 (47%) |
+| **Consumer pool** (9 pods × `1cpu / 2GiB`, 18 slots, 9 cores, 18 GiB)  |             |                          |                          |                           |                           |
+| · max CPU summed (cores) / % of 9 cpu                                  | 4.47 (50%)  |               7.87 (87%) |               7.85 (87%) |                7.99 (89%) |                7.89 (88%) |
+| · total CPU (s)                                                        | 1823        |                     1803 |                     1547 |                      1465 |                      1367 |
+| · peak memory (MiB) / % of 18 GiB                                      | 9993 (54%)  |               8543 (46%) |               7988 (43%) |                8740 (47%) |                8795 (48%) |
+| **Total cluster** (producer + consumer = 10 cpu, 20 GiB)               |             |                          |                          |                           |                           |
+| · max CPU summed / % of 10 cpu                                         | 4.47 (45%)  |               8.06 (81%) |               8.28 (83%) |                8.63 (86%) |                8.43 (84%) |
+| · total CPU (s)                                                        | 1823        |                     1888 |                     1639 |                      1566 |                  **1464** |
+| · peak memory (MiB) / % of 20 GiB                                      | 9993 (49%)  |               9440 (46%) |               8932 (44%) |                9685 (47%) |                9333 (46%) |
+
+Take-aways
+----------
+
+* WATCHER beats LOCAL at every threads value, even `threads=4` is 23% faster than LOCAL. At `threads=16` it's 2.7× faster (215 s vs 572 s).
+* Both wall time and total CPU decrease monotonically with threads in WATCHER (1888 s → 1639 s → 1566 s → 1464 s of total cluster CPU). Higher threads = faster and less total CPU consumed.
+* LOCAL is BigQuery-latency-bound, not CPU-bound, consumer pool tops out at only 4.47 / 9 cores (50%) even with 18 slots. Memory tells the same story: LOCAL hits 54% memory because all 16 concurrent dbt processes work concurrently in the pods, whereas WATCHER stays at 43–48% (just one `dbt build` plus light sensors).
+* WATCHER fills the consumer pool to ~88% CPU, sensors do real CPU work (XCom polling, state machine), so they keep the slots busy.
+* Producer at `threads=16` hits 75% of its 1-cpu cap, the next ceiling. Going past `threads=16` would benefit from producer cpu=2.
+
+Historical results
+------------------
 
 The data printed to the console has been copied to this Google Spreadsheet:
 https://docs.google.com/spreadsheets/d/10c6hMjwBJZ1DybiJT8o0TApVPyk-oPuJCY01bj2zC0A/edit?gid=0#gid=0
