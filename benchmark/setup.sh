@@ -127,7 +127,8 @@ cd benchmark
 
 # --- Distributed Airflow setup for Helm-based benchmark experiments. -----------
 # Chart 1.21.0 ships Airflow 3.2.0 (api-server replaces the legacy webserver);
-# the image installed via requirements.txt must match (apache-airflow==3.2.0).
+# our benchmark image is built FROM apache/airflow:3.2.0 (see benchmark/Dockerfile),
+# so it ships the matching Airflow runtime — no apache-airflow pin in requirements.txt.
 
 kubectl --context "${KUBE_CONTEXT}" create namespace airflow --dry-run=client -o yaml \
   | kubectl --context "${KUBE_CONTEXT}" apply -f -

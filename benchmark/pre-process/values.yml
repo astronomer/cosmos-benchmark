@@ -17,7 +17,9 @@ config:
 postgresql:
   image:
     repository: postgres
-    tag: latest
+    # Pin to a stable Postgres major. Apache Airflow Helm chart 1.21 supports
+    # Postgres 13/14/15/16; using 15 here matches the chart's recommended tier.
+    tag: "15"
 
 scheduler:
   resources:
@@ -29,8 +31,9 @@ scheduler:
       memory: "4Gi"
 
 # Default workers act as the WATCHER consumer pool (sensors on the `default` queue).
-# Producer workers are deployed separately via pre-process/producer-worker.yaml so we
-# can give them dedicated resources and scrape them as a distinct Prometheus group.
+# Producer workers are deployed separately by pre-process/render-producer-worker.py
+# (driven from setup.sh) so we can give them dedicated resources and scrape them as a
+# distinct Prometheus group.
 # We use a Deployment (persistence disabled) so consumer pods get hash-suffixed
 # names matching `airflow-worker-.+`, distinct from `airflow-producer-worker-.+`.
 workers:

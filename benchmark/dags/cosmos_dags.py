@@ -58,16 +58,16 @@ if current_dag_id is None or current_dag_id == "example_dbt_dag_watcher":
     )
 
 if current_dag_id is None or current_dag_id == "example_operator_build":
-        with DAG(
-          "example_operator_build",
-          schedule=None,
-          catchup=False,
-          is_paused_upon_creation=False
-        ) as dag:
-            build = DbtBuildLocalOperator(
-                task_id="build",
-                profile_config=profile_config,
-                project_dir=DBT_PROJECT_PATH,
-                operator_args={"install_deps": False}
-            )
-            build
+    with DAG(
+        "example_operator_build",
+        schedule=None,
+        catchup=False,
+        is_paused_upon_creation=False,
+    ) as dag:
+        build = DbtBuildLocalOperator(
+            task_id="build",
+            profile_config=profile_config,
+            project_dir=DBT_PROJECT_PATH,
+            operator_args={"install_deps": False},
+        )
+        build

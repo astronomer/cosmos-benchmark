@@ -132,6 +132,7 @@ Results: LOCAL vs WATCHER (2026-05-08)
 Cluster config (identical for every column):
 
 * Apache Airflow Helm chart `1.21.0` (Airflow `3.2.0`), Cosmos `1.14.1`, dbt-bigquery `1.9`
+  (`astronomer-cosmos` is unpinned in `requirements.txt` — these numbers were measured with `1.14.1`, the latest at the time of the run; reruns may pick up a newer Cosmos version.)
 * **Producer pool**: 1 replica × `cpu=1 / memory=2Gi` (right-sized down from 4cpu/8Gi)
 * **Consumer pool**: 9 replicas × `cpu=1 / memory=2Gi` × `worker_concurrency=2` → **18 task slots, 9 cores total**
 * Airflow `parallelism=16`

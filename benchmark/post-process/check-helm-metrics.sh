@@ -19,10 +19,11 @@ fi
 DAG_NAME="$1"
 PROM_API="http://localhost:9090/api/v1/query"
 NAMESPACE="${NAMESPACE:-airflow}"
+KUBE_CONTEXT="${KUBE_CONTEXT:-kind-kind}"
 
 # Discover the latest DAG run window from Airflow metadata.
-API_POD=$(kubectl get pods -n "$NAMESPACE" -l component=api-server -o jsonpath="{.items[0].metadata.name}")
-RUN_JSON=$(kubectl exec -n "$NAMESPACE" "$API_POD" -- \
+API_POD=$(kubectl --context "$KUBE_CONTEXT" get pods -n "$NAMESPACE" -l component=api-server -o jsonpath="{.items[0].metadata.name}")
+RUN_JSON=$(kubectl --context "$KUBE_CONTEXT" exec -n "$NAMESPACE" "$API_POD" -- \
   airflow dags list-runs "$DAG_NAME" --output json 2>/dev/null \
   | python3 -c "import json,sys;data=json.load(sys.stdin);print(json.dumps(data[0]) if data else '{}')")
 
@@ -57,6 +58,13 @@ bytes_to_human() {
   # Always emit MiB once we are over the KiB range so callers can compare
   # values across runs without losing precision to GiB truncation. Anything
   # in the GiB range gets shown as e.g. "9785 MiB (9.55 GiB)".
+  # Pass non-numeric inputs (e.g. the "n/a" sentinel from query_prometheus
+  # when a query returned no data) through unchanged so the report stays
+  # readable instead of erroring inside the arithmetic below.
+  case "${1:-}" in
+    ''|n/a)         echo "n/a"; return ;;
+    *[!0-9.]*)      echo "${1}"; return ;;
+  esac
   local b=${1%.*}
   b=${b:-0}
   if (( b < 1024 )); then
