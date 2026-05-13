@@ -17,7 +17,7 @@ limitations under the License. */
   runtime, which leaves dbt with no edge between the seed task and this view.
   Under concurrent execution (high `threads`, or LOCAL mode where each model
   is its own task) the seed reload and the view recreation can race, causing
-  intermittent "Table release_17.thresholds was not found" failures.
+  intermittent "Table <dataset>.thresholds was not found" failures.
   Replacing the runtime lookup with `ref(name)` registers the dependency in
   dbt's graph so the seed always runs before this model.
 #}

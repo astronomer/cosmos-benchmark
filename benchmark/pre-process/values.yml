@@ -5,6 +5,15 @@ images:
     repository: benchmark
     tag: 0.0.6
 
+# BQ_DATASET is required by the dbt profile (pre-process/profiles.yml) and is
+# injected into every Airflow pod (scheduler, workers, api-server, dag-processor)
+# via the chart's top-level env: block. setup.sh overrides the value at install
+# time with `--set-string env[0].value=$BQ_DATASET` after verifying the env var
+# is set; the placeholder below only matters if someone bypasses setup.sh.
+env:
+  - name: BQ_DATASET
+    value: "UNSET"
+
 config:
   core:
     dags_are_paused_at_creation: "False"

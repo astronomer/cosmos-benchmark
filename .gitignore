@@ -1,5 +1,6 @@
 .idea
 __pycache__
 benchmark/pre-process/key.json
+benchmark/.env
 dbt/logs
 dbt/altered_jaffle_shop/.user.yml
