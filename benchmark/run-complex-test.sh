@@ -5,10 +5,10 @@ set -x
 set -e
 
 # Configurable via env:
-#   DAGS          space-separated DAG ids to run (default: example_dbt_dag example_operator_build)
+#   DAGS          space-separated DAG ids to run (default: example_dbt_dag_watcher example_dbt_dag example_operator_build)
 #   REPS          repetitions per DAG (default: 1)
 #   KUBE_CONTEXT  kubectl context to target (default: kind-kind, matching setup.sh)
-DAGS="${DAGS:-example_dbt_dag example_operator_build}"
+DAGS="${DAGS:-example_dbt_dag_watcher example_dbt_dag example_operator_build}"
 REPS="${REPS:-1}"
 KUBE_CONTEXT="${KUBE_CONTEXT:-kind-kind}"
 
