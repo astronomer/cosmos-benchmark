@@ -121,5 +121,15 @@ kubectl --context "${KUBE_CONTEXT}" port-forward svc/prometheus-kube-prometheus-
 echo $! > "$PID_FILE"
 
 # Build the docker image that will be used to run the experiments
-cd ..; docker build -t benchmark:0.0.3 -f benchmark/Dockerfile .
-kind load docker-image benchmark:0.0.3
+cd ..; docker build -t benchmark:0.0.4 -f benchmark/Dockerfile .
+kind load docker-image benchmark:0.0.4
+
+# Create a namespace
+kubectl create namespace airflow
+
+## Install Airflow using Helm
+helm install airflow apache-airflow/airflow --version 1.18.0 \
+  --namespace airflow \
+  -f pre-process/values.yml
+
+kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow &
