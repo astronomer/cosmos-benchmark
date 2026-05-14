@@ -121,8 +121,8 @@ kubectl --context "${KUBE_CONTEXT}" port-forward svc/prometheus-kube-prometheus-
 echo $! > "$PID_FILE"
 
 # Build the docker image that will be used to run the experiments
-cd ..; docker build -t benchmark:0.0.5 -f benchmark/Dockerfile .
-kind load --name "${KIND_CLUSTER}" docker-image benchmark:0.0.5
+cd ..; docker build -t benchmark:0.0.6 -f benchmark/Dockerfile .
+kind load --name "${KIND_CLUSTER}" docker-image benchmark:0.0.6
 cd benchmark
 
 # --- Distributed Airflow setup for Helm-based benchmark experiments. -----------

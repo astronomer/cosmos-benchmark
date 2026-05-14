@@ -3,7 +3,7 @@ executor: CeleryExecutor
 images:
   airflow:
     repository: benchmark
-    tag: 0.0.5
+    tag: 0.0.6
 
 config:
   core:

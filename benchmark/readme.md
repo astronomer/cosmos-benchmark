@@ -76,6 +76,27 @@ kubectl --context kind-kind -n airflow rollout status deployment/airflow-worker
 Larger worker pools may need more host headroom — see the **Host
 resources** section above.
 
+Available DAGs
+--------------
+
+`benchmark/dags/cosmos_dags.py` defines the DAGs that the Helm-based
+benchmark targets. Pass any subset to `run-complex-test.sh` via the
+`DAGS` env var (space-separated):
+
+* `example_dbt_dag` — Cosmos LOCAL execution mode. One Airflow task per
+  dbt model in the `fhir-dbt-analytics` project.
+* `example_dbt_dag_watcher` — Cosmos WATCHER execution mode. A single
+  producer task runs `dbt build` for the project; per-model sensor
+  tasks watch its XCom for completion. Requires Cosmos ≥ 1.11.
+* `example_operator_build` — single `DbtBuildLocalOperator` task that
+  runs `dbt build` on the project in one shot.
+
+Example:
+
+```
+DAGS="example_dbt_dag_watcher" REPS=1 ./run-complex-test.sh
+```
+
 Analysing performance
 ---------------------
 
