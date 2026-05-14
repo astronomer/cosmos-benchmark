@@ -140,5 +140,24 @@ helm --kube-context "${KUBE_CONTEXT}" upgrade --install airflow apache-airflow/a
 
 kubectl --context "${KUBE_CONTEXT}" -n airflow rollout status deployment/airflow-worker --timeout=600s
 
+# Deploy the dedicated producer worker pool. The manifest is derived from the
+# chart's rendered worker Deployment so ServiceAccount / ConfigMap / Secret
+# references stay in sync with whatever the chart wired up — we only override
+# queue, labels, replicas and resources. Tunable per run via env vars:
+#   PRODUCER_REPLICAS PRODUCER_CPU PRODUCER_MEM PRODUCER_QUEUE
+#
+# The env-var assignments must hug the python3 invocation — putting them
+# before `kubectl` would scope them to kubectl's environment only and leave
+# the renderer with its built-in defaults.
+kubectl --context "${KUBE_CONTEXT}" -n airflow get deployment airflow-worker -o json \
+  | PRODUCER_REPLICAS="${PRODUCER_REPLICAS:-1}" \
+    PRODUCER_CPU="${PRODUCER_CPU:-1}" \
+    PRODUCER_MEM="${PRODUCER_MEM:-2Gi}" \
+    PRODUCER_QUEUE="${PRODUCER_QUEUE:-producer}" \
+    python3 pre-process/render-producer-worker.py \
+  | kubectl --context "${KUBE_CONTEXT}" -n airflow apply -f -
+
+kubectl --context "${KUBE_CONTEXT}" -n airflow rollout status deployment/airflow-producer-worker --timeout=600s
+
 # Expose the api-server so we can trigger DAG runs from outside the cluster.
 kubectl --context "${KUBE_CONTEXT}" port-forward svc/airflow-api-server 8080:8080 -n airflow &

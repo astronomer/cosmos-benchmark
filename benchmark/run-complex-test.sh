@@ -22,8 +22,9 @@ for RUN_DAG_NAME in $DAGS; do
       kubectl --context "$KUBE_CONTEXT" wait --for=condition=Available deployment/$deploy -n airflow --timeout=300s
     done
 
-    # Wait for the worker pool (CeleryExecutor)
+    # Wait for both worker pools (CeleryExecutor)
     kubectl --context "$KUBE_CONTEXT" -n airflow rollout status deployment/airflow-worker --timeout=300s
+    kubectl --context "$KUBE_CONTEXT" -n airflow rollout status deployment/airflow-producer-worker --timeout=300s
 
     API_POD=$(kubectl --context "$KUBE_CONTEXT" get pods -n airflow -l component=api-server -o jsonpath="{.items[0].metadata.name}")
     kubectl --context "$KUBE_CONTEXT" exec -n airflow "$API_POD" -- env DAG_NAME="$RUN_DAG_NAME" bash /opt/airflow/trigger_dag.sh

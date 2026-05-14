@@ -76,6 +76,49 @@ kubectl --context kind-kind -n airflow rollout status deployment/airflow-worker
 Larger worker pools may need more host headroom — see the **Host
 resources** section above.
 
+Dedicated producer worker pool (WATCHER mode)
+---------------------------------------------
+
+When the WATCHER DAG (`example_dbt_dag_watcher`) runs, Cosmos renders
+one **producer** task that runs `dbt build` for the whole project plus
+one sensor task per dbt model. The producer is CPU-heavy and bursty;
+the sensors are meant to be lightweight — they watch the producer's
+XCom, register datasets, and interact with Airflow state, but they
+don't do any dbt work themselves. Running them in the same worker
+pool means a single pod has to satisfy both shapes — usually badly.
+
+`setup.sh` deploys a second worker `Deployment` (`airflow-producer-worker`)
+alongside the chart's default consumer pool. The split works as follows:
+
+* **Consumer pool** — chart-default workers (`values.yml::workers`),
+  picks up the default Celery queue. Sensor tasks land here.
+* **Producer pool** — rendered by `pre-process/render-producer-worker.py`
+  from the chart's worker `Deployment` spec, with `component=producer-worker`
+  / `cosmos-role=producer` labels and Celery args `-q producer`.
+* **Routing** — `config.cosmos.watcher_dbt_execution_queue: "producer"`
+  in `values.yml` makes Cosmos publish WATCHER producer tasks to the
+  `producer` queue. Sensor tasks have no explicit queue, so they fall
+  back to the default queue and the consumer pool.
+
+The producer pool is env-tunable per `./setup.sh` run:
+
+```
+PRODUCER_REPLICAS=1 PRODUCER_CPU=2 PRODUCER_MEM=4Gi ./setup.sh
+```
+
+| Variable            | Default      | Notes                                                                                                                  |
+| ------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `PRODUCER_REPLICAS` | `1`          | One producer per DAG run is the typical shape; more replicas only help if running multiple WATCHER DAGs concurrently.  |
+| `PRODUCER_CPU`      | `1`          | Matches consumer per-pod sizing. Bump for higher dbt `threads` — dbt parallelism is producer-bound.                    |
+| `PRODUCER_MEM`      | `2Gi`        | Matches consumer per-pod sizing.                                                                                       |
+| `PRODUCER_QUEUE`    | `producer`   | Must match `cosmos.watcher_dbt_execution_queue` in `values.yml` if you override it.                                    |
+
+Why mutate the chart's `airflow-worker` Deployment instead of writing
+a manifest from scratch: keeps the producer pool inheriting
+ServiceAccount / ConfigMap / Secret refs / env / volumes / init-containers
+that the official chart wires up. Chart upgrades automatically flow
+through to the producer pool the next time `setup.sh` runs.
+
 Available DAGs
 --------------
 
