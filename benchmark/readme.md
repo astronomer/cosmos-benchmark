@@ -97,6 +97,25 @@ Example:
 DAGS="example_dbt_dag_watcher" REPS=1 ./run-complex-test.sh
 ```
 
+Upstream dbt project patches
+----------------------------
+
+The benchmark Docker image overlays files from `benchmark/patches/` onto
+the upstream `fhir-dbt-analytics` dbt project at build time (see the
+`COPY ... /opt/airflow/models/...` lines in `benchmark/Dockerfile`).
+Each patch fixes a specific issue that causes flaky benchmark failures;
+the patch file itself documents the rationale in a leading Jinja
+comment block.
+
+Current patches:
+
+* `unioned_thresholds.sql` — adds an explicit `depends_on:
+  {{ ref('thresholds') }}` hint so dbt's scheduler waits for the
+  `thresholds` seed before recreating the view. Upstream uses an
+  `adapter.get_relation(...)` lookup that dbt's static analysis can't
+  see, which leaves the seed→view edge missing from the DAG and races
+  at `threads ≥ 8`.
+
 Analysing performance
 ---------------------
 
