@@ -22,6 +22,17 @@ config:
     worker_concurrency: "4"
   cosmos:
     watcher_dbt_execution_queue: "producer"
+  # The Airflow 3 api-server checks token revocation on every request, which
+  # pins a SQLAlchemy connection per inflight HTTP call. The chart's default
+  # pool (5 + 10 overflow) gets exhausted as soon as the UI is open in a couple
+  # of tabs while a DAG is running, surfacing as
+  #   sqlalchemy.exc.TimeoutError: QueuePool limit of size 5 overflow 10 reached
+  # Bump the ceiling and recycle stale connections so long-lived pods don't
+  # accumulate dead ones from Postgres-side timeouts.
+  database:
+    sql_alchemy_pool_size: "20"
+    sql_alchemy_max_overflow: "40"
+    sql_alchemy_pool_recycle: "300"
 
 postgresql:
   image:
