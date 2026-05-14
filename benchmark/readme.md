@@ -192,6 +192,20 @@ METRICS_CSV=/tmp/results.csv BENCH_LABEL="WATCHER threads=8" \
   DAGS="example_dbt_dag_watcher" REPS=5 ./run-complex-test.sh
 ```
 
+Once a sweep is finished, `post-process/summarise-metrics.py` reads
+the CSV and emits a markdown table with `mean ± sample-stdev` (n−1
+denominator) per `(config, metric)`, ready to paste into the results
+section below:
+
+```
+./post-process/summarise-metrics.py /tmp/results.csv \
+  --label-order "LOCAL,WATCHER threads=4,WATCHER threads=8,WATCHER threads=12,WATCHER threads=16"
+```
+
+The script is stdlib-only (no `pandas` dependency); memory cells are
+converted from raw bytes to MiB before averaging so the table matches
+the units in the per-rep stdout report.
+
 Upstream dbt project patches
 ----------------------------
 
