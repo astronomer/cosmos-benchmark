@@ -46,6 +46,21 @@ Provide credentials and configuration:
   ```
 
   Real-shell exports take precedence over `.env` values.
+
+  **The dataset must live in the `US` multi-region.** The dbt project reads from `bigquery-public-data:fhir_synthea` (US-only), and BigQuery pins each job to the target dataset's region; a non-US `BQ_DATASET` fails the cross-region read with the misleading error `Access Denied: Table ... or perhaps it does not exist`. Dataset location is immutable, so create it in `US` up front. Quick check / create:
+
+  ```
+  GOOGLE_APPLICATION_CREDENTIALS="$PWD/pre-process/key.json" python3 - <<'PY'
+  from google.cloud import bigquery
+  c = bigquery.Client(project="astronomer-dag-authoring")
+  ds_id = f"astronomer-dag-authoring.<your-username>"
+  try:
+      print("existing location:", c.get_dataset(ds_id).location)
+  except Exception:
+      ds = bigquery.Dataset(ds_id); ds.location = "US"
+      c.create_dataset(ds); print("created in", ds.location)
+  PY
+  ```
 * If you target a different BigQuery project, update `benchmark/pre-process/profiles.yml` accordingly.
 
 Initialize the dbt project submodule once from the repo root:
