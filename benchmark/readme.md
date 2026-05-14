@@ -115,6 +115,22 @@ PRODUCER_REPLICAS=1 PRODUCER_CPU=2 PRODUCER_MEM=4Gi ./setup.sh
 | `PRODUCER_QUEUE`        | `producer`   | Must match `cosmos.watcher_dbt_execution_queue` in `values.yml` if you override it.                                    |
 | `PRODUCER_CONCURRENCY`  | `1`          | Celery `-c` flag. Default `1` keeps each pod owning one `dbt build`; raise alongside `PRODUCER_CPU`/`PRODUCER_MEM`.    |
 
+### Different dbt `threads` for WATCHER
+
+Higher `threads` cuts WATCHER wall time — the producer's `dbt build`
+parallelises across independent dbt models. The value lives in
+`pre-process/profiles.yml` and gets baked into the image at build time —
+to sweep it without rebuilding, patch the producer pod's `profiles.yml`
+in place:
+
+```
+PROD=$(kubectl --context kind-kind -n airflow get pod -l cosmos-role=producer -o jsonpath='{.items[0].metadata.name}')
+kubectl --context kind-kind exec -n airflow "$PROD" -c worker -- \
+  sed -i 's/threads: 4/threads: 16/' /opt/airflow/profiles.yml
+```
+
+LOCAL mode ignores `threads` because each model is its own Airflow task.
+
 Why mutate the chart's `airflow-worker` Deployment instead of writing
 a manifest from scratch: keeps the producer pool inheriting
 ServiceAccount / ConfigMap / Secret refs / env / volumes / init-containers
@@ -142,6 +158,40 @@ Example:
 DAGS="example_dbt_dag_watcher" REPS=1 ./run-complex-test.sh
 ```
 
+Per-pool metrics
+----------------
+
+After each rep, `run-complex-test.sh` invokes
+`post-process/report-dag-run-pool-metrics.sh`, which queries Prometheus
+(via the `localhost:9090` port-forward) for:
+
+* **Producer pool** — pods matching `airflow-producer-worker-.+`
+* **Consumer pool** — pods matching `airflow-worker-.+`
+* **Total cluster** — both pools combined
+
+Each query is scoped to the actual DAG-run window pulled from Airflow's
+metadata (`start_date`, `end_date`), so historical pod incarnations from
+earlier reps don't pollute the totals. Per pool the script reports:
+
+* Max CPU utilisation (cores, summed across the pool)
+* Total CPU seconds consumed
+* Peak memory working-set (bytes, formatted as MiB / GiB)
+
+Optional env vars on `report-dag-run-pool-metrics.sh`:
+
+* `METRICS_CSV=/path/to/file.csv` — append a one-line CSV row per rep,
+  writing a header on first append. Use this for sweeps where the
+  results need to land in a spreadsheet.
+* `BENCH_LABEL="..."` — free-form label baked into the CSV row (e.g.
+  `LOCAL`, `WATCHER threads=8`). Empty if unset.
+
+Example — 5 reps of WATCHER at `threads=8`, CSV piped into one file:
+
+```
+METRICS_CSV=/tmp/results.csv BENCH_LABEL="WATCHER threads=8" \
+  DAGS="example_dbt_dag_watcher" REPS=5 ./run-complex-test.sh
+```
+
 Upstream dbt project patches
 ----------------------------
 
@@ -163,6 +213,8 @@ Current patches:
 
 Analysing performance
 ---------------------
+
+> **Note:** the flow below is the **legacy kubectl-Job-based** benchmark path, kept here for reference. The Helm-based flow documented above is canonical for LOCAL vs WATCHER comparisons.
 
 As a first step, we'll analyse dbt-core commands performance.
 This approach will be extended to run Airflow.

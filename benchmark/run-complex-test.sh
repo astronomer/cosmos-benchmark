@@ -31,5 +31,6 @@ for RUN_DAG_NAME in $DAGS; do
 
     echo End time: $(date +"%Y-%m-%dT%H:%M:%S%z")
     sleep 40
+    KUBE_CONTEXT="$KUBE_CONTEXT" ./post-process/report-dag-run-pool-metrics.sh "$RUN_DAG_NAME"
   done
 done
