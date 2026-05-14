@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: airflow-logs
+  namespace: airflow
+# Pre-created so the chart's `logs.persistence.existingClaim` can reference it.
+# The Apache Airflow Helm chart 1.21 hard-codes ReadWriteMany on its templated
+# logs PVC and rejects `accessMode` via values.schema.json, but kind's
+# local-path provisioner only supports ReadWriteOnce. Single-node kind schedules
+# every Airflow pod on the same node, so RWO is fine.
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
