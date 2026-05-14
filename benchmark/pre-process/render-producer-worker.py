@@ -9,10 +9,11 @@ Reads `kubectl get deployment airflow-worker -n airflow -o json` from stdin and
 writes a producer-worker Deployment JSON manifest to stdout (kubectl accepts JSON).
 
 Tunable via env vars:
-  PRODUCER_REPLICAS  default 1
-  PRODUCER_CPU       default "1"
-  PRODUCER_MEM       default "2Gi"
-  PRODUCER_QUEUE     default "producer"
+  PRODUCER_REPLICAS    default 1
+  PRODUCER_CPU         default "1"
+  PRODUCER_MEM         default "2Gi"
+  PRODUCER_QUEUE       default "producer"
+  PRODUCER_CONCURRENCY default 1
 """
 import json
 import os
@@ -26,6 +27,7 @@ def main() -> int:
     cpu = os.environ.get("PRODUCER_CPU", "1")
     mem = os.environ.get("PRODUCER_MEM", "2Gi")
     queue = os.environ.get("PRODUCER_QUEUE", "producer")
+    concurrency = int(os.environ.get("PRODUCER_CONCURRENCY", "1"))
 
     for k in ("uid", "resourceVersion", "creationTimestamp", "generation", "managedFields"):
         src["metadata"].pop(k, None)
@@ -63,7 +65,12 @@ def main() -> int:
     pod_spec = spec["template"]["spec"]
     containers = pod_spec["containers"]
     worker = next((c for c in containers if c["name"] == "worker"), containers[0])
-    worker["args"] = ["bash", "-c", f"exec airflow celery worker -q {queue}"]
+    # Force concurrency=1 by default so each producer pod owns at most one
+    # dbt build at a time. Without `-c`, the celery worker would inherit the
+    # chart's global `config.celery.worker_concurrency: "2"` (set in
+    # values.yml for the consumer pool) and let this 1cpu/2GiB pod accept a
+    # second producer task simultaneously — both would thrash against the cap.
+    worker["args"] = ["bash", "-c", f"exec airflow celery worker -q {queue} -c {concurrency}"]
     worker["resources"] = {
         "requests": {"cpu": cpu, "memory": mem},
         "limits": {"cpu": cpu, "memory": mem},

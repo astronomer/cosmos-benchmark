@@ -143,8 +143,9 @@ kubectl --context "${KUBE_CONTEXT}" -n airflow rollout status deployment/airflow
 # Deploy the dedicated producer worker pool. The manifest is derived from the
 # chart's rendered worker Deployment so ServiceAccount / ConfigMap / Secret
 # references stay in sync with whatever the chart wired up — we only override
-# queue, labels, replicas and resources. Tunable per run via env vars:
-#   PRODUCER_REPLICAS PRODUCER_CPU PRODUCER_MEM PRODUCER_QUEUE
+# queue, labels, replicas, resources, and Celery concurrency. Tunable per run
+# via env vars:
+#   PRODUCER_REPLICAS PRODUCER_CPU PRODUCER_MEM PRODUCER_QUEUE PRODUCER_CONCURRENCY
 #
 # The env-var assignments must hug the python3 invocation — putting them
 # before `kubectl` would scope them to kubectl's environment only and leave
@@ -154,6 +155,7 @@ kubectl --context "${KUBE_CONTEXT}" -n airflow get deployment airflow-worker -o 
     PRODUCER_CPU="${PRODUCER_CPU:-1}" \
     PRODUCER_MEM="${PRODUCER_MEM:-2Gi}" \
     PRODUCER_QUEUE="${PRODUCER_QUEUE:-producer}" \
+    PRODUCER_CONCURRENCY="${PRODUCER_CONCURRENCY:-1}" \
     python3 pre-process/render-producer-worker.py \
   | kubectl --context "${KUBE_CONTEXT}" -n airflow apply -f -
 

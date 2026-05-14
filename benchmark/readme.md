@@ -26,12 +26,13 @@ Install the following tools on the host:
 ### Host resources
 
 The benchmark cluster runs entirely inside `kind` (one Docker container).
-Allocate at minimum **8 CPU cores and 16 GiB memory** to Docker / OrbStack;
-**10 CPU cores and 20 GiB memory** is recommended. This covers the Airflow
-workers (4 × `1cpu / 2Gi`), scheduler (`2cpu / 4Gi`), api-server /
-triggerer / DAG processor / Postgres / Redis (~2 cpu / 2.5 GiB combined
-from chart defaults), the Prometheus stack (~1.5 cpu / 2.5 GiB), and the
-kind control plane (~1 cpu / 1 GiB).
+Allocate at minimum **10 CPU cores and 20 GiB memory** to Docker / OrbStack;
+**12 CPU cores and 24 GiB memory** is recommended. This covers the
+consumer workers (4 × `1cpu / 2Gi`), the dedicated WATCHER producer pool
+(1 × `1cpu / 2Gi`), scheduler (`2cpu / 4Gi`), api-server / triggerer /
+DAG processor / Postgres / Redis (~2 cpu / 2.5 GiB combined from chart
+defaults), the Prometheus stack (~1.5 cpu / 2.5 GiB), and the kind
+control plane (~1 cpu / 1 GiB).
 
 Create a file called `key.json` inside the folder `benchmark/pre-process`, which contains the credentials to access the BigQuery instance of interest. While we are running locally, this approach is acceptable. If we are using a hosted K8s cluster, we should use K8s secrets or another more secure approach.
 
@@ -106,12 +107,13 @@ The producer pool is env-tunable per `./setup.sh` run:
 PRODUCER_REPLICAS=1 PRODUCER_CPU=2 PRODUCER_MEM=4Gi ./setup.sh
 ```
 
-| Variable            | Default      | Notes                                                                                                                  |
-| ------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `PRODUCER_REPLICAS` | `1`          | One producer per DAG run is the typical shape; more replicas only help if running multiple WATCHER DAGs concurrently.  |
-| `PRODUCER_CPU`      | `1`          | Matches consumer per-pod sizing. Bump for higher dbt `threads` — dbt parallelism is producer-bound.                    |
-| `PRODUCER_MEM`      | `2Gi`        | Matches consumer per-pod sizing.                                                                                       |
-| `PRODUCER_QUEUE`    | `producer`   | Must match `cosmos.watcher_dbt_execution_queue` in `values.yml` if you override it.                                    |
+| Variable                | Default      | Notes                                                                                                                  |
+| ----------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `PRODUCER_REPLICAS`     | `1`          | One producer per DAG run is the typical shape; more replicas only help if running multiple WATCHER DAGs concurrently.  |
+| `PRODUCER_CPU`          | `1`          | Matches consumer per-pod sizing. Bump for higher dbt `threads` — dbt parallelism is producer-bound.                    |
+| `PRODUCER_MEM`          | `2Gi`        | Matches consumer per-pod sizing.                                                                                       |
+| `PRODUCER_QUEUE`        | `producer`   | Must match `cosmos.watcher_dbt_execution_queue` in `values.yml` if you override it.                                    |
+| `PRODUCER_CONCURRENCY`  | `1`          | Celery `-c` flag. Default `1` keeps each pod owning one `dbt build`; raise alongside `PRODUCER_CPU`/`PRODUCER_MEM`.    |
 
 Why mutate the chart's `airflow-worker` Deployment instead of writing
 a manifest from scratch: keeps the producer pool inheriting
