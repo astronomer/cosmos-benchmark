@@ -1,42 +1,44 @@
 executor: CeleryExecutor
-#defaultAirflowTag: 2.10.0
-
 
 images:
   airflow:
     repository: benchmark
-    tag: 0.0.4
+    tag: 0.0.5
 
-airflow:
-
-  config:
-    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: false
-    #AIRFLOW__API__AUTH_BACKEND: "airflow.api.auth.backend.basic_auth"
-    #AIRFLOW__WEBSERVER__ACCESS_CONTROL_ALLOW_ORIGINS: 'http://localhost'
-
-    AIRFLOW__CELERY__WORKER_CONCURRENCY: "2"     # 2 tasks per worker pod
-    AIRFLOW__CORE__PARALLELISM: "2"             # Optional: global max task slots
+config:
+  core:
+    dags_are_paused_at_creation: "False"
+    parallelism: "16"
+  celery:
+    worker_concurrency: "2"
 
 postgresql:
   image:
     repository: postgres
-    tag: latest
+    # Pin to a stable Postgres major. Apache Airflow Helm chart 1.21 supports
+    # Postgres 13/14/15/16; using 15 here matches the chart's recommended tier.
+    tag: "15"
 
 scheduler:
-    resources:
-      requests:
-        cpu: "2"
-        memory: "4Gi"
-      limits:
-        cpu: "2"
-        memory: "4Gi"
+  resources:
+    requests:
+      cpu: "2"
+      memory: "4Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
 
 workers:
-    replicas: 2
-    resources:
-      requests:
-        cpu: "2"
-        memory: "4Gi"
-      limits:
-        cpu: "2"
-        memory: "4Gi"
+  replicas: 4
+  # Disable the chart's StatefulSet/PVC mode — workers are stateless Celery
+  # workers that don't need persistent storage. This lets setup.sh's rollout
+  # status check target deployment/airflow-worker (instead of a StatefulSet).
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
