@@ -18,13 +18,63 @@ As a starting point, we are running the tests against a local Kubernetes cluster
 Requirements
 ------------
 
-Install the following tools:
-* Docker or equivalent tool.
-* Kind
+Install the following tools on the host:
+* Docker (or OrbStack)
+* `kind`, `kubectl`, `helm`
+* `jq`, `lsof` (preinstalled on macOS; `apt-get install jq lsof` on Debian/Ubuntu)
+
+### Host resources
+
+The benchmark cluster runs entirely inside `kind` (one Docker container).
+Allocate at minimum **8 CPU cores and 16 GiB memory** to Docker / OrbStack;
+**10 CPU cores and 20 GiB memory** is recommended. This covers the Airflow
+workers (4 × `1cpu / 2Gi`), scheduler (`2cpu / 4Gi`), api-server /
+triggerer / DAG processor / Postgres / Redis (~2 cpu / 2.5 GiB combined
+from chart defaults), the Prometheus stack (~1.5 cpu / 2.5 GiB), and the
+kind control plane (~1 cpu / 1 GiB).
 
 Create a file called `key.json` inside the folder `benchmark/pre-process`, which contains the credentials to access the BigQuery instance of interest. While we are running locally, this approach is acceptable. If we are using a hosted K8s cluster, we should use K8s secrets or another more secure approach.
 
 Update the `profiles.yml`  file in the pre-process to reference your BigQuery dataset and related Google project.
+
+Tweaking the worker pool
+------------------------
+
+Two ways to change worker resources, replica count, or concurrency:
+
+**Edit `pre-process/values.yml` and re-run `setup.sh`** — the script is
+idempotent (`helm upgrade --install`), so it rolls out the new chart
+values without recreating the cluster or rebuilding the image:
+
+```
+# bump workers from 4 → 6 replicas with 2cpu / 4Gi each
+sed -i.bak \
+  -e 's/replicas: 4/replicas: 6/' \
+  -e 's/cpu: "1"/cpu: "2"/' \
+  -e 's/memory: "2Gi"/memory: "4Gi"/' \
+  benchmark/pre-process/values.yml
+cd benchmark && ./setup.sh
+```
+
+**Override in place via `helm --set`** — no re-edit, no re-run of `setup.sh`:
+
+```
+helm --kube-context kind-kind upgrade airflow apache-airflow/airflow \
+  --version 1.21.0 -n airflow -f benchmark/pre-process/values.yml \
+  --set workers.replicas=6 \
+  --set workers.resources.requests.cpu=2 --set workers.resources.limits.cpu=2 \
+  --set workers.resources.requests.memory=4Gi --set workers.resources.limits.memory=4Gi \
+  --set config.celery.worker_concurrency=4
+```
+
+Wait for the rollout to settle before triggering a new run:
+
+```
+kubectl --context kind-kind -n airflow rollout status deployment/airflow-worker
+```
+
+Larger worker pools may need more host headroom — see the **Host
+resources** section above.
 
 Analysing performance
 ---------------------
