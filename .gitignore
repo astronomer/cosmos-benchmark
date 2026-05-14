@@ -2,3 +2,4 @@
 __pycache__
 benchmark/pre-process/key.json
 dbt/logs
+dbt/altered_jaffle_shop/.user.yml
