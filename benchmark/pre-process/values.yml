@@ -11,6 +11,8 @@ config:
     parallelism: "16"
   celery:
     worker_concurrency: "2"
+  cosmos:
+    watcher_dbt_execution_queue: "producer"
 
 postgresql:
   image:
