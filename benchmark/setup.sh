@@ -5,6 +5,28 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KEY_FILE="$SCRIPT_DIR/pre-process/key.json"
+ENV_FILE="$SCRIPT_DIR/.env"
+
+# Auto-load benchmark/.env so committers don't need to export BQ_DATASET (and
+# any other future settings) in every shell. Real-shell env vars still win
+# because `set -a` only exports values being assigned, not ones already set.
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +a
+fi
+
+# Fail fast if the dbt profile's dataset isn't configured. pre-process/profiles.yml
+# templates this in via env_var('BQ_DATASET'); without it every dbt invocation in
+# the cluster would error mid-run. Use your own scratch dataset (e.g. your username)
+# rather than sharing one with other developers.
+if [ -z "${BQ_DATASET:-}" ]; then
+  echo "ERROR: BQ_DATASET is not set."
+  echo "Export your target BigQuery dataset before running setup, e.g. 'export BQ_DATASET=<your-username>',"
+  echo "or add 'BQ_DATASET=<your-username>' to $ENV_FILE."
+  exit 1
+fi
 
 # Fail fast if the GCP service account key is missing or no longer valid,
 # rather than discovering it deep inside a benchmark run.
@@ -136,7 +158,9 @@ kubectl --context "${KUBE_CONTEXT}" create namespace airflow --dry-run=client -o
 helm --kube-context "${KUBE_CONTEXT}" upgrade --install airflow apache-airflow/airflow \
   --version 1.21.0 \
   --namespace airflow \
-  -f pre-process/values.yml
+  -f pre-process/values.yml \
+  --set-string "env[0].name=BQ_DATASET" \
+  --set-string "env[0].value=${BQ_DATASET}"
 
 # Wait for the chart's default (consumer) worker pods so the rendered Deployment
 # is fully materialised before we copy its spec for the producer pool.

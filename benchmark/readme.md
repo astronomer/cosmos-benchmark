@@ -31,9 +31,37 @@ Install on the host:
 * `lsof` (preinstalled on macOS; `apt-get install lsof` on Debian/Ubuntu) — used by `setup.sh` for port-forward safety
 * `jq`, `python3` (preinstalled on macOS)
 
-Provide credentials:
+Provide credentials and configuration:
 * `benchmark/pre-process/key.json` — GCP service-account JSON with BigQuery access. `setup.sh` validates this key before doing any work.
-* If you target a different BigQuery project / dataset, update `benchmark/pre-process/profiles.yml` accordingly.
+* `BQ_DATASET` env var — required. The BigQuery dataset dbt writes models into; `setup.sh` refuses to start without it. Use your own scratch dataset (e.g. your username) rather than sharing one with other developers:
+
+  ```
+  export BQ_DATASET=<your-username>
+  ```
+
+  Or persist it across shells by creating `benchmark/.env` (auto-loaded by `setup.sh`, gitignored):
+
+  ```
+  echo "BQ_DATASET=<your-username>" > benchmark/.env
+  ```
+
+  Real-shell exports take precedence over `.env` values.
+
+  **The dataset must live in the `US` multi-region.** The dbt project reads from `bigquery-public-data:fhir_synthea` (US-only), and BigQuery pins each job to the target dataset's region; a non-US `BQ_DATASET` fails the cross-region read with the misleading error `Access Denied: Table ... or perhaps it does not exist`. Dataset location is immutable, so create it in `US` up front. Quick check / create:
+
+  ```
+  GOOGLE_APPLICATION_CREDENTIALS="$PWD/pre-process/key.json" python3 - <<'PY'
+  from google.cloud import bigquery
+  c = bigquery.Client(project="astronomer-dag-authoring")
+  ds_id = f"astronomer-dag-authoring.<your-username>"
+  try:
+      print("existing location:", c.get_dataset(ds_id).location)
+  except Exception:
+      ds = bigquery.Dataset(ds_id); ds.location = "US"
+      c.create_dataset(ds); print("created in", ds.location)
+  PY
+  ```
+* If you target a different BigQuery project, update `benchmark/pre-process/profiles.yml` accordingly.
 
 Initialize the dbt project submodule once from the repo root:
 
@@ -105,11 +133,14 @@ Different consumer sizing (in-place, no re-setup needed):
 ```
 helm --kube-context kind-kind upgrade airflow apache-airflow/airflow --version 1.21.0 \
   -n airflow -f pre-process/values.yml \
+  --set-string env[0].name=BQ_DATASET --set-string env[0].value="$BQ_DATASET" \
   --set workers.replicas=9 \
   --set workers.resources.requests.cpu=1 --set workers.resources.limits.cpu=1 \
   --set workers.resources.requests.memory=2Gi --set workers.resources.limits.memory=2Gi \
   --set config.celery.worker_concurrency=2
 ```
+
+The `env[0]` overrides re-inject `BQ_DATASET` — they're load-bearing because `--set` replaces the array element rather than merging, and dropping them would leave workers with the placeholder value from `values.yml`.
 
 Different dbt `threads` for WATCHER (the producer's `dbt build` honours this; LOCAL ignores it because each task selects a single model):
 
@@ -194,7 +225,8 @@ Regenerate it whenever the `dbt/fhir-dbt-analytics` submodule pin changes:
 cd dbt/fhir-dbt-analytics
 DBT_PROFILES_DIR=../../benchmark/pre-process \
 KEY_PATH=../../benchmark/pre-process/key.json \
+BQ_DATASET=<your-username> \
   dbt --quiet ls --output json > ../fhir-dbt-analytics-dbt-ls-output.json
 ```
 
-`DBT_PROFILES_DIR` points dbt at the benchmark profile (the submodule ships with a placeholder `profiles.yml` that isn't valid YAML), and `KEY_PATH` is the env var the profile templates in. `--quiet` suppresses dbt's INFO log lines so only the JSON nodes land in the file (`progress.sh` tolerates noise lines, but a clean file is easier to diff).
+`DBT_PROFILES_DIR` points dbt at the benchmark profile (the submodule ships with a placeholder `profiles.yml` that isn't valid YAML); `KEY_PATH` and `BQ_DATASET` are the env vars the profile templates in. `--quiet` suppresses dbt's INFO log lines so only the JSON nodes land in the file (`progress.sh` tolerates noise lines, but a clean file is easier to diff).
