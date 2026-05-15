@@ -159,16 +159,31 @@ report_pool "consumer" "airflow-worker-.+" "CONSUMER"
 report_pool "total (producer + consumer)" "airflow(-producer)?-worker-.+" "TOTAL"
 
 if [ -n "${METRICS_CSV:-}" ]; then
-  if [ ! -s "$METRICS_CSV" ]; then
-    echo "run_at,label,dag_id,run_id,state,duration_s,producer_duration_s,tail_s,tasks_total,tasks_success,producer_max_cpu_cores,producer_total_cpu_s,producer_peak_mem_bytes,consumer_max_cpu_cores,consumer_total_cpu_s,consumer_peak_mem_bytes,total_max_cpu_cores,total_total_cpu_s,total_peak_mem_bytes" > "$METRICS_CSV"
-  fi
-  printf "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" \
+  python3 - "$METRICS_CSV" \
     "$END_DATE" "${BENCH_LABEL:-}" "$DAG_NAME" "$RUN_ID" "$RUN_STATE" "$DURATION" \
     "$PRODUCER_DURATION" "$TAIL_DURATION" "$TASKS_TOTAL" "$TASKS_SUCCESS" \
     "$PRODUCER_CPU_MAX" "$PRODUCER_CPU_TOTAL" "$PRODUCER_MEM_BYTES" \
     "$CONSUMER_CPU_MAX" "$CONSUMER_CPU_TOTAL" "$CONSUMER_MEM_BYTES" \
-    "$TOTAL_CPU_MAX" "$TOTAL_CPU_TOTAL" "$TOTAL_MEM_BYTES" \
-    >> "$METRICS_CSV"
+    "$TOTAL_CPU_MAX" "$TOTAL_CPU_TOTAL" "$TOTAL_MEM_BYTES" <<'PY'
+# RFC 4180 CSV emission via the stdlib csv module — handles quoting / escaping
+# correctly even if a future BENCH_LABEL or other field contains a comma,
+# double-quote, or newline. Header is written only when the file is new.
+import csv, os, sys
+path, *row = sys.argv[1:]
+header = [
+    "run_at", "label", "dag_id", "run_id", "state", "duration_s",
+    "producer_duration_s", "tail_s", "tasks_total", "tasks_success",
+    "producer_max_cpu_cores", "producer_total_cpu_s", "producer_peak_mem_bytes",
+    "consumer_max_cpu_cores", "consumer_total_cpu_s", "consumer_peak_mem_bytes",
+    "total_max_cpu_cores", "total_total_cpu_s", "total_peak_mem_bytes",
+]
+need_header = not os.path.exists(path) or os.path.getsize(path) == 0
+with open(path, "a", newline="") as f:
+    w = csv.writer(f)
+    if need_header:
+        w.writerow(header)
+    w.writerow(row)
+PY
   echo ""
   echo "Appended CSV row to ${METRICS_CSV}"
 fi
