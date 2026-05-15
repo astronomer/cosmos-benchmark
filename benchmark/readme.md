@@ -272,7 +272,7 @@ Take-aways
   from t=8 → t=16) but the sensor "tail" grows almost in lockstep
   (61 s → 126 s), so the savings are mostly cancelled.
 * **The tail grew significantly vs the 2026-05-08 baseline** (prior
-  benchmark that was not committed to the commit history but can be found in PR #25 ).
+  benchmark that was not committed to the commit history but can be found in PR #25).
   At `threads=8` we measured `61 ± 6 s` vs `14 s` previously; at `threads=16`, `126 ± 14 s` vs `52 s`.
   Producer durations track the prior numbers closely, so the divergence
   is in the WATCHER sensor wake-up / XCom polling path — likely a
