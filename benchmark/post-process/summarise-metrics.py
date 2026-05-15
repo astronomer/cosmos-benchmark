@@ -2,7 +2,7 @@
 """Summarise per-pool metrics CSV into a per-config (mean ± stdev) markdown table.
 
 Reads the CSV produced by `report-dag-run-pool-metrics.sh` (one row per rep,
-identified by the BENCH_LABEL column), groups rows by label, and emits a
+identified by the `label` column), groups rows by label, and emits a
 markdown table with mean ± sample-standard-deviation (n-1 denominator) for
 each metric.
 
