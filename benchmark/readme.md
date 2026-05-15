@@ -295,11 +295,15 @@ Reproducing the 2026-05-15 sweep
 
 Starting from a working benchmark cluster (`./setup.sh` from main with
 all PRs in this stack merged, OrbStack allocated ≥ 14 cpu / 28 GiB),
-scale the consumer pool from the default 4 → 9 replicas:
+**run all the commands below from inside the `benchmark/` directory**
+(where `setup.sh`, `run-complex-test.sh`, and the `post-process/` and
+`pre-process/` folders all live).
+
+Scale the consumer pool from the default 4 → 9 replicas:
 
 ```
 helm --kube-context kind-kind upgrade airflow apache-airflow/airflow --version 1.21.0 \
-  -n airflow -f benchmark/pre-process/values.yml \
+  -n airflow -f pre-process/values.yml \
   --set workers.replicas=9
 kubectl --context kind-kind -n airflow rollout status deployment/airflow-worker
 ```
@@ -344,7 +348,7 @@ METRICS_CSV=/tmp/sweep-2026-05-15.csv BENCH_LABEL="WATCHER threads=16" \
 Generate the summary table from the accumulated CSV:
 
 ```
-./benchmark/post-process/summarise-metrics.py /tmp/sweep-2026-05-15.csv \
+./post-process/summarise-metrics.py /tmp/sweep-2026-05-15.csv \
   --label-order "LOCAL,WATCHER threads=4,WATCHER threads=8,WATCHER threads=12,WATCHER threads=16"
 ```
 

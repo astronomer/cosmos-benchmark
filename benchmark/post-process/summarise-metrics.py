@@ -50,8 +50,13 @@ def to_float(value):
 def format_result_cell(rows):
     """Render tasks_success/tasks_total across N reps.
 
-    All clean: "188/188 (5/5 ✅)"
-    Mixed:     "min=187/188 (4/5 ✅)" — lowest-success rep + clean-rep count
+    All clean, same total:        "188/188 (5/5 ✅)"
+    All clean, differing totals:  "187/187, 188/188 (2/2 ✅)" — surfaces the
+                                  mixed shape (e.g. LOCAL and WATCHER reps
+                                  accidentally grouped under one label)
+                                  instead of hiding it behind the first row.
+    Mixed (any failed rep):       "min=187/188 (4/5 ✅)" — lowest-success rep
+                                  + clean-rep count
     """
     pairs = []
     for r in rows:
@@ -63,9 +68,12 @@ def format_result_cell(rows):
         return "—"
     clean = sum(1 for s, t in pairs if s == t)
     n = len(pairs)
-    if clean == n:
-        s, t = pairs[0]
+    distinct = sorted(set(pairs))
+    if clean == n and len(distinct) == 1:
+        s, t = distinct[0]
         return f"{s}/{t} ({clean}/{n} ✅)"
+    if clean == n:
+        return ", ".join(f"{s}/{t}" for s, t in distinct) + f" ({clean}/{n} ✅)"
     worst = min(pairs, key=lambda p: p[0])
     return f"min={worst[0]}/{worst[1]} ({clean}/{n} ✅)"
 
