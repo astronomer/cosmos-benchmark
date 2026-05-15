@@ -155,6 +155,11 @@ cd benchmark
 kubectl --context "${KUBE_CONTEXT}" create namespace airflow --dry-run=client -o yaml \
   | kubectl --context "${KUBE_CONTEXT}" apply -f -
 
+# Pre-create the logs PVC with ReadWriteOnce so the chart can reference it via
+# `logs.persistence.existingClaim`. See pre-process/airflow-logs-pvc.yaml for
+# the kind-vs-chart access-mode mismatch this works around.
+kubectl --context "${KUBE_CONTEXT}" apply -f pre-process/airflow-logs-pvc.yaml
+
 helm --kube-context "${KUBE_CONTEXT}" upgrade --install airflow apache-airflow/airflow \
   --version 1.21.0 \
   --namespace airflow \

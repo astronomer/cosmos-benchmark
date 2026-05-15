@@ -22,6 +22,17 @@ config:
     worker_concurrency: "4"
   cosmos:
     watcher_dbt_execution_queue: "producer"
+  # The Airflow 3 api-server checks token revocation on every request, which
+  # pins a SQLAlchemy connection per inflight HTTP call. The chart's default
+  # pool (5 + 10 overflow) gets exhausted as soon as the UI is open in a couple
+  # of tabs while a DAG is running, surfacing as
+  #   sqlalchemy.exc.TimeoutError: QueuePool limit of size 5 overflow 10 reached
+  # Bump the ceiling and recycle stale connections so long-lived pods don't
+  # accumulate dead ones from Postgres-side timeouts.
+  database:
+    sql_alchemy_pool_size: "20"
+    sql_alchemy_max_overflow: "40"
+    sql_alchemy_pool_recycle: "300"
 
 postgresql:
   image:
@@ -56,3 +67,18 @@ workers:
     limits:
       cpu: "2"
       memory: "4Gi"
+
+# Shared PVC for task logs so the api-server / UI can read them off disk instead
+# of fetching from each worker over port 8793. On a kind cluster, pod hostnames
+# (e.g. airflow-worker-<hash>) are not resolvable via cluster DNS, so the
+# served-logs path fails with "Name or service not known" and the UI shows only
+# the fetch error. Mounting a shared PVC sidesteps the DNS lookup entirely.
+#
+# We point at a pre-created PVC (pre-process/airflow-logs-pvc.yaml, applied by
+# setup.sh) because the chart hard-codes ReadWriteMany on its templated PVC and
+# rejects `accessMode` overrides via values.schema.json — but kind's local-path
+# provisioner only supports ReadWriteOnce.
+logs:
+  persistence:
+    enabled: true
+    existingClaim: airflow-logs

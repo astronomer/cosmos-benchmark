@@ -61,6 +61,7 @@ Provide credentials and configuration:
       c.create_dataset(ds); print("created in", ds.location)
   PY
   ```
+
 * If you target a different BigQuery project, update `benchmark/pre-process/profiles.yml` accordingly.
 
 Initialize the dbt project submodule once from the repo root:
