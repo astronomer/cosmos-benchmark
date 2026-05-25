@@ -27,6 +27,7 @@ for job in $JOBS; do
     echo End time: $(date +"%Y-%m-%dT%H:%M:%S%z")
     sleep 40
     ./post-process/check-metrics.sh "$job"
+    ./post-process/check-parse-time.sh "$job"
     kubectl delete job "$job"
   done
 done

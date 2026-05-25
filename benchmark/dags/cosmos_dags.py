@@ -13,8 +13,16 @@ except ImportError:
     from airflow.utils.dag_parsing_context import get_parsing_context
 
 from cosmos import DbtDag, ProjectConfig, ProfileConfig, RenderConfig, ExecutionConfig
-from cosmos.constants import TestBehavior, ExecutionMode
+from cosmos.constants import LoadMode, TestBehavior, ExecutionMode
 from cosmos import DbtBuildLocalOperator, DbtRunLocalOperator, DbtSeedLocalOperator, DbtTestLocalOperator
+
+# Apply the build-time graph cache POC: unpickle the parsed graph instead of
+# re-parsing dbt_ls.json, and skip the (cosmetic) project folder-version hash.
+# Set COSMOS_GRAPH_CACHE_POC_DISABLE=1 to A/B compare against the unpatched path.
+import sys
+sys.path.insert(0, "/opt/airflow")
+import dbt_graph_cache_poc
+dbt_graph_cache_poc.install()
 
 
 DBT_PROJECT_PATH = Path(__file__).parent.parent
@@ -32,11 +40,20 @@ profile_config = ProfileConfig(
     profiles_yml_filepath=DBT_PROJECT_PATH / "profiles.yml",
 )
 
+# Pre-rendered dbt ls output baked into the image at /opt/airflow/dbt_ls.json
+# (see benchmark/Dockerfile). With the POC installed above, Cosmos actually
+# reads /opt/airflow/dbt_ls.json.pkl (the pre-parsed nodes dict).
+render_config = RenderConfig(
+    load_method=LoadMode.DBT_LS_FILE,
+    dbt_ls_path=DBT_PROJECT_PATH / "dbt_ls.json",
+    test_behavior=TestBehavior.NONE,
+)
+
 if current_dag_id is None or current_dag_id == "example_dbt_dag":
     example_dbt_dag = DbtDag(
         project_config=project_config,
         profile_config=profile_config,
-        render_config=RenderConfig(test_behavior=TestBehavior.NONE),
+        render_config=render_config,
         schedule=None,
         catchup=False,
         dag_id="example_dbt_dag",
@@ -49,7 +66,7 @@ if current_dag_id is None or current_dag_id == "example_dbt_dag_watcher":
         project_config=project_config,
         profile_config=profile_config,
         execution_config=ExecutionConfig(execution_mode=ExecutionMode.WATCHER),
-        render_config=RenderConfig(test_behavior=TestBehavior.NONE),
+        render_config=render_config,
         schedule=None,
         catchup=False,
         dag_id="example_dbt_dag_watcher",
