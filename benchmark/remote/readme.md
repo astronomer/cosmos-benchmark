@@ -18,7 +18,7 @@ Quickstart (from this directory):
 Defaults:
 
 * GCP project `astronomer-dag-authoring`, zone `us-central1-a`
-* VM `n2-standard-12` (12 vCPU / 48 GiB, ~$0.58/hr, mirrors an Apple M4 Pro)
+* VM `n2-custom-12-49152` (12 vCPU / 48 GiB, ~$0.58/hr, mirrors an Apple M4 Pro)
 * Sweep `cosmos ∈ {1.13.1, 1.14.2}` × `threads ∈ {4, 8, 16}` × `5 reps`
   → ~3 hrs of VM time (≈ $1.75)
 

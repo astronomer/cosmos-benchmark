@@ -406,8 +406,9 @@ cd benchmark/remote
 ./teardown.sh            # deletes the VM and its boot disk
 ```
 
-Defaults: `n2-standard-12` (12 vCPU / 48 GiB, comparable to an Apple M4 Pro
-with 48 GB) in `us-central1-a`, 100 GiB pd-ssd, sweep matrix
+Defaults: `n2-custom-12-49152` (12 vCPU / 48 GiB custom n2, comparable to
+an Apple M4 Pro with 48 GB; the stock `n2-standard` family skips the 12-cpu
+size) in `us-central1-a`, 100 GiB pd-ssd, sweep matrix
 `COSMOS_VERSIONS="1.13.1 1.14.2"` × `THREADS_VALUES="4 8 16"` × `REPS=5`.
 The default sweep takes ~3 hrs of VM wall time (≈ $1.75 at on-demand
 pricing). `teardown.sh` removes both the VM and its disk; nothing else
@@ -420,7 +421,7 @@ Override via env vars on `provision.sh`:
 | `GCP_PROJECT`     | `astronomer-dag-authoring`    | Used for both billing and BigQuery. |
 | `GCP_ZONE`        | `us-central1-a`               |       |
 | `VM_NAME`         | `cosmos-bench`                |       |
-| `MACHINE_TYPE`    | `n2-standard-12`              | 12 vCPU / 48 GiB — chosen to mirror an Apple M4 Pro / 48 GB laptop. Covers the 12 cpu / 24 GiB _Host resources_ recommendation with headroom. |
+| `MACHINE_TYPE`    | `n2-custom-12-49152`          | 12 vCPU / 48 GiB custom n2 — chosen to mirror an Apple M4 Pro / 48 GB laptop. Covers the 12 cpu / 24 GiB _Host resources_ recommendation with headroom. |
 | `DISK_SIZE_GB`    | `100`                         | pd-ssd. Images + kind data + Prometheus storage fit comfortably under 50 GiB. |
 | `COSMOS_VERSIONS` | `1.13.1 1.14.2`               | Space-separated; first version is also the one `setup.sh` deploys initially. |
 | `THREADS_VALUES`  | `4 8 16`                      | Space-separated. Patched into the producer pod's `profiles.yml` between cells. |
