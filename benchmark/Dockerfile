@@ -1,5 +1,11 @@
 FROM apache/airflow:3.2.0
 
+# Pin the astronomer-cosmos version at build time so a remote sweep can rebuild
+# the image once per Cosmos release without editing requirements.txt. Local
+# `setup.sh` keeps the default; remote `run-sweep.sh` overrides via
+# `docker build --build-arg COSMOS_VERSION=...`.
+ARG COSMOS_VERSION=1.14.2
+
 USER root
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -18,7 +24,8 @@ ENV KEY_PATH=/opt/airflow/key.json
 
 # dbt-bigquery + astronomer-cosmos on top of the official airflow image.
 COPY benchmark/pre-process/requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt \
+ && pip install --no-cache-dir "astronomer-cosmos==${COSMOS_VERSION}"
 
 WORKDIR /opt/airflow
 

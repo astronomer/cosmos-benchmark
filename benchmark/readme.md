@@ -137,6 +137,28 @@ ServiceAccount / ConfigMap / Secret refs / env / volumes / init-containers
 that the official chart wires up. Chart upgrades automatically flow
 through to the producer pool the next time `setup.sh` runs.
 
+Pinning the astronomer-cosmos version
+-------------------------------------
+
+The benchmark image installs `astronomer-cosmos` via a Dockerfile build-arg
+(`COSMOS_VERSION`, default `1.14.2`). `setup.sh` threads two env vars through
+to the build + helm install so you can pin a specific Cosmos release without
+editing files:
+
+* `COSMOS_VERSION` — passed to `docker build --build-arg`; e.g. `1.13.1`.
+* `IMAGE_TAG` — image tag used by `docker build`, `kind load`, and the chart's
+  `images.airflow.tag`. Defaults to `0.0.7` (matches `pre-process/values.yml`).
+
+```
+COSMOS_VERSION=1.13.1 IMAGE_TAG=cosmos-1.13.1 ./setup.sh
+```
+
+Always pick a non-default `IMAGE_TAG` when you change `COSMOS_VERSION` —
+Kubernetes won't re-pull a tag it has cached, so reusing `0.0.7` between
+Cosmos versions would leave the cluster running the previously-loaded image.
+Sweeping multiple Cosmos versions in one cluster lifecycle is automated by
+`benchmark/remote/run-sweep.sh` (see _Running benchmarks remotely on GCP_).
+
 Available DAGs
 --------------
 
@@ -354,6 +376,61 @@ Generate the summary table from the accumulated CSV:
 
 The full sweep takes ~2.8 hours on a single-node kind cluster sized at
 14 cpu / 28 GiB.
+
+Running benchmarks remotely on GCP
+==================================
+
+For fully isolated, repeatable comparisons — same Linux kernel, same VM
+shape, no contention with whatever's running on your laptop —
+`benchmark/remote/` ships a small set of scripts that provision a GCE VM,
+drive a Cosmos-version × dbt-threads sweep on it, and pull the resulting
+CSV back. The on-VM driver reuses `setup.sh` + `run-complex-test.sh` + the
+`post-process/` scripts unchanged; the only novel logic is iterating the
+matrix and rebuilding the benchmark image between Cosmos versions.
+
+Prerequisites on the laptop:
+
+* `gcloud` CLI authenticated (`gcloud auth login`), default project
+  `astronomer-dag-authoring` — or override with `GCP_PROJECT`.
+* A valid `benchmark/pre-process/key.json` (the same BigQuery key the
+  local flow uses; uploaded to the VM via instance metadata, never
+  baked into a public image).
+
+Default sweep:
+
+```
+cd benchmark/remote
+./provision.sh           # creates the VM and kicks off the sweep
+./monitor.sh             # tails the on-VM sweep log (optional, Ctrl-C is safe)
+./fetch-results.sh       # blocks until SWEEP_DONE, then scps CSV + .md into ../results/
+./teardown.sh            # deletes the VM and its boot disk
+```
+
+Defaults: `n2-standard-12` (12 vCPU / 48 GiB, comparable to an Apple M4 Pro
+with 48 GB) in `us-central1-a`, 100 GiB pd-ssd, sweep matrix
+`COSMOS_VERSIONS="1.13.1 1.14.2"` × `THREADS_VALUES="4 8 16"` × `REPS=5`.
+The default sweep takes ~3 hrs of VM wall time (≈ $1.75 at on-demand
+pricing). `teardown.sh` removes both the VM and its disk; nothing else
+lingers in the project.
+
+Override via env vars on `provision.sh`:
+
+| Var               | Default                       | Notes |
+| ----------------- | ----------------------------- | ----- |
+| `GCP_PROJECT`     | `astronomer-dag-authoring`    | Used for both billing and BigQuery. |
+| `GCP_ZONE`        | `us-central1-a`               |       |
+| `VM_NAME`         | `cosmos-bench`                |       |
+| `MACHINE_TYPE`    | `n2-standard-12`              | 12 vCPU / 48 GiB — chosen to mirror an Apple M4 Pro / 48 GB laptop. Covers the 12 cpu / 24 GiB _Host resources_ recommendation with headroom. |
+| `DISK_SIZE_GB`    | `100`                         | pd-ssd. Images + kind data + Prometheus storage fit comfortably under 50 GiB. |
+| `COSMOS_VERSIONS` | `1.13.1 1.14.2`               | Space-separated; first version is also the one `setup.sh` deploys initially. |
+| `THREADS_VALUES`  | `4 8 16`                      | Space-separated. Patched into the producer pod's `profiles.yml` between cells. |
+| `REPS`            | `5`                           | Reps per `(cosmos, threads)` cell. |
+| `REPO_URL`        | upstream cosmos-benchmark repo | Useful when forking. |
+| `REPO_BRANCH`     | `main`                        | Point at a feature branch when iterating on the remote scripts themselves. |
+
+`monitor.sh`, `fetch-results.sh`, and `teardown.sh` share the same
+`GCP_PROJECT`, `GCP_ZONE`, and `VM_NAME` env vars; if you override one on
+`provision.sh`, override it on the others too.
 
 Analysing performance
 ---------------------

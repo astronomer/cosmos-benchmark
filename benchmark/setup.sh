@@ -44,6 +44,12 @@ PY
 KIND_CLUSTER="kind"
 KUBE_CONTEXT="kind-${KIND_CLUSTER}"
 
+# Image tag used both for `docker build`/`kind load` and the chart's
+# `images.airflow.tag`. Default matches values.yml so unset == legacy behaviour.
+# Override (alongside COSMOS_VERSION) when sweeping multiple Cosmos releases
+# from a remote runner — see benchmark/remote/run-sweep.sh.
+IMAGE_TAG="${IMAGE_TAG:-0.0.7}"
+
 # Create a Kind cluster (skip if it already exists)
 if kind get clusters | grep -q "^${KIND_CLUSTER}$"; then
   echo "Kind cluster '${KIND_CLUSTER}' already exists, skipping creation."
@@ -120,9 +126,15 @@ kubectl --context "${KUBE_CONTEXT}" port-forward svc/prometheus-kube-prometheus-
   >"$PORT_FORWARD_LOG" 2>&1 &
 echo $! > "$PID_FILE"
 
-# Build the docker image that will be used to run the experiments
-cd ..; docker build -t benchmark:0.0.7 -f benchmark/Dockerfile .
-kind load --name "${KIND_CLUSTER}" docker-image benchmark:0.0.7
+# Build the docker image that will be used to run the experiments.
+# COSMOS_VERSION (optional) pins astronomer-cosmos at build time; if unset, the
+# Dockerfile's ARG default applies.
+BUILD_ARGS=()
+if [ -n "${COSMOS_VERSION:-}" ]; then
+  BUILD_ARGS+=(--build-arg "COSMOS_VERSION=${COSMOS_VERSION}")
+fi
+cd ..; docker build "${BUILD_ARGS[@]}" -t "benchmark:${IMAGE_TAG}" -f benchmark/Dockerfile .
+kind load --name "${KIND_CLUSTER}" docker-image "benchmark:${IMAGE_TAG}"
 cd benchmark
 
 # --- Distributed Airflow setup for Helm-based benchmark experiments. -----------
@@ -133,10 +145,18 @@ cd benchmark
 kubectl --context "${KUBE_CONTEXT}" create namespace airflow --dry-run=client -o yaml \
   | kubectl --context "${KUBE_CONTEXT}" apply -f -
 
+# `--set images.airflow.tag` only kicks in when IMAGE_TAG differs from the
+# chart-values default; keeps default invocations producing the same release
+# manifest as before.
+HELM_SET_TAG=()
+if [ "$IMAGE_TAG" != "0.0.7" ]; then
+  HELM_SET_TAG=(--set "images.airflow.tag=${IMAGE_TAG}")
+fi
 helm --kube-context "${KUBE_CONTEXT}" upgrade --install airflow apache-airflow/airflow \
   --version 1.21.0 \
   --namespace airflow \
-  -f pre-process/values.yml
+  -f pre-process/values.yml \
+  "${HELM_SET_TAG[@]}"
 
 kubectl --context "${KUBE_CONTEXT}" -n airflow rollout status deployment/airflow-worker --timeout=600s
 
