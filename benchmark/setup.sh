@@ -45,10 +45,16 @@ KIND_CLUSTER="kind"
 KUBE_CONTEXT="kind-${KIND_CLUSTER}"
 
 # Image tag used both for `docker build`/`kind load` and the chart's
-# `images.airflow.tag`. Default matches values.yml so unset == legacy behaviour.
-# Override (alongside COSMOS_VERSION) when sweeping multiple Cosmos releases
-# from a remote runner — see benchmark/remote/run-sweep.sh.
-IMAGE_TAG="${IMAGE_TAG:-0.0.7}"
+# `images.airflow.tag`. When `COSMOS_VERSION` is set we default the tag to
+# `cosmos-${COSMOS_VERSION}` so the image and tag stay coupled — otherwise a
+# bare `COSMOS_VERSION=X ./setup.sh` would bake cosmos X into an image still
+# named `benchmark:0.0.7`, and Kubernetes would happily reuse the previous
+# cached `0.0.7` (different cosmos) instead of the freshly built one.
+if [ -n "${COSMOS_VERSION:-}" ]; then
+  IMAGE_TAG="${IMAGE_TAG:-cosmos-${COSMOS_VERSION}}"
+else
+  IMAGE_TAG="${IMAGE_TAG:-0.0.7}"
+fi
 
 # Airflow chart version (default ships Airflow 3.2.0); override `CHART_VERSION`
 # together with `AIRFLOW_BASE` to deploy an older Airflow release — e.g. when

@@ -128,6 +128,20 @@ printf '%s' "$REPS"            > "${STAGE_DIR}/reps"
 printf '%s' "$AIRFLOW_BASE"    > "${STAGE_DIR}/airflow-base"
 printf '%s' "$CHART_VERSION"   > "${STAGE_DIR}/chart-version"
 
+# Rough wall-clock estimate so the operator can size their patience to the
+# actual matrix instead of a hardcoded blurb. Heuristic per rep is ~6 min
+# (WATCHER threads=8 was 314s ± 9s in the 2026-05-15 baseline + ~45s of
+# Prometheus polling + 60s inter-rep sleep). Bootstrap (kind+helm+image
+# build) is ~15 min on a cold n2-custom-12-49152; each additional Cosmos
+# version costs ~5 min for the image rebuild + helm rollout.
+NUM_COSMOS=$(echo "$COSMOS_VERSIONS" | wc -w | tr -d ' ')
+NUM_THREADS=$(echo "$THREADS_VALUES" | wc -w | tr -d ' ')
+NUM_CELLS=$((NUM_COSMOS * NUM_THREADS))
+EST_BOOTSTRAP=15
+EST_REBUILDS=$(( (NUM_COSMOS - 1) * 5 ))
+EST_RUNS=$(( NUM_CELLS * REPS * 6 ))
+EST_MINUTES=$(( EST_BOOTSTRAP + EST_REBUILDS + EST_RUNS ))
+
 cat <<EOF
 About to create GCE VM with this config:
 
@@ -148,7 +162,9 @@ Sweep matrix (written into the VM via instance metadata):
   chart version:    $CHART_VERSION
   repo branch:      $REPO_BRANCH   (from $REPO_URL)
 
-Expected wall-clock: ~3 hrs for the default 2 \xc3\x97 3 \xc3\x97 5 = 30-rep sweep.
+Expected wall-clock: ~$EST_MINUTES min ($EST_BOOTSTRAP min bootstrap + \
+$EST_REBUILDS min image rebuilds + \
+$NUM_CELLS \xc3\x97 $REPS reps \xc3\x97 ~6 min = $EST_RUNS min sweep).
 Hit Ctrl-C now to abort. Press ENTER to create the VM.
 EOF
 read -r _
