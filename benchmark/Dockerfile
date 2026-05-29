@@ -30,9 +30,20 @@ ENV AIRFLOW__CORE__DAG_FILE_PROCESSOR_TIMEOUT=20000
 ENV KEY_PATH=/opt/airflow/key.json
 
 # dbt-bigquery + astronomer-cosmos on top of the official airflow image.
+#
+# The final `pip install protobuf>=6` step undoes a downgrade that cosmos
+# 1.13.x triggers: one of its transitive deps pins `protobuf<5`, so installing
+# cosmos *after* dbt silently replaces protobuf 6.x with 4.25.9. That breaks
+# dbt-common ≥ 1.38, which calls
+# `MessageToJson(always_print_fields_with_no_presence=...)` — a kwarg only
+# added in protobuf 5.27. Symptom is `dbt deps` exiting with a `TypeError`.
+# Cosmos 1.14+ loosened the pin so the upgrade is a no-op there; keeping it
+# unconditional means a sweep across both 1.13 and 1.14 doesn't need a
+# version-aware Dockerfile.
 COPY benchmark/pre-process/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt \
- && pip install --no-cache-dir "astronomer-cosmos==${COSMOS_VERSION}"
+ && pip install --no-cache-dir "astronomer-cosmos==${COSMOS_VERSION}" \
+ && pip install --no-cache-dir "protobuf>=6,<7"
 
 WORKDIR /opt/airflow
 
