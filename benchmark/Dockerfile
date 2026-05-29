@@ -1,4 +1,11 @@
-FROM apache/airflow:3.2.0
+# Pin the Airflow base image at build time so a sweep can target a specific
+# Airflow release without editing the Dockerfile. Cosmos releases older than
+# 1.14 have a circular-import bug against Airflow 3.2's eager provider-config
+# enumeration (cosmos/settings.py imports airflow.configuration at module
+# level), so a sweep that spans those Cosmos versions needs to drop to a
+# matching older Airflow base — see benchmark/readme.md.
+ARG AIRFLOW_BASE=apache/airflow:3.2.0
+FROM ${AIRFLOW_BASE}
 
 # Pin the astronomer-cosmos version at build time so a remote sweep can rebuild
 # the image once per Cosmos release without editing requirements.txt. Local

@@ -35,6 +35,14 @@ COSMOS_VERSIONS="${COSMOS_VERSIONS:-1.13.1 1.14.2}"
 THREADS_VALUES="${THREADS_VALUES:-4 8 16}"
 REPS="${REPS:-5}"
 
+# Airflow base image + chart version — must be a matched pair (chart appVersion
+# === image tag). Defaults track the 2026-05-15 published-results baseline.
+# Override to e.g. AIRFLOW_BASE=apache/airflow:3.1.8 CHART_VERSION=1.20.0 when
+# running a sweep that includes a pre-Airflow-3.2 Cosmos release (e.g. 1.13.1
+# has a circular import on Airflow 3.2 — see benchmark/readme.md).
+AIRFLOW_BASE="${AIRFLOW_BASE:-apache/airflow:3.2.0}"
+CHART_VERSION="${CHART_VERSION:-1.21.0}"
+
 # Where on GitHub the VM clones the benchmark repo from. Default tracks main;
 # override to a feature branch while the remote scripts are still in review.
 REPO_URL="${REPO_URL:-https://github.com/astronomer/cosmos-benchmark.git}"
@@ -83,6 +91,8 @@ REPO_BRANCH="$(fetch repo-branch)"
 COSMOS_VERSIONS="$(fetch cosmos-versions)"
 THREADS_VALUES="$(fetch threads-values)"
 REPS="$(fetch reps)"
+AIRFLOW_BASE="$(fetch airflow-base)"
+CHART_VERSION="$(fetch chart-version)"
 
 mkdir -p /opt/cosmos-bench
 cd /opt/cosmos-bench
@@ -100,7 +110,7 @@ chmod 600 cosmos-benchmark/benchmark/pre-process/key.json
 
 # Hand off to the in-repo bootstrap. Exporting the sweep config so bootstrap.sh
 # and run-sweep.sh can pick it up without re-reading metadata.
-export COSMOS_VERSIONS THREADS_VALUES REPS
+export COSMOS_VERSIONS THREADS_VALUES REPS AIRFLOW_BASE CHART_VERSION
 exec bash cosmos-benchmark/benchmark/remote/bootstrap.sh
 STARTUP_EOF
 )
@@ -115,6 +125,8 @@ printf '%s' "$REPO_BRANCH"     > "${STAGE_DIR}/repo-branch"
 printf '%s' "$COSMOS_VERSIONS" > "${STAGE_DIR}/cosmos-versions"
 printf '%s' "$THREADS_VALUES"  > "${STAGE_DIR}/threads-values"
 printf '%s' "$REPS"            > "${STAGE_DIR}/reps"
+printf '%s' "$AIRFLOW_BASE"    > "${STAGE_DIR}/airflow-base"
+printf '%s' "$CHART_VERSION"   > "${STAGE_DIR}/chart-version"
 
 cat <<EOF
 About to create GCE VM with this config:
@@ -132,6 +144,8 @@ Sweep matrix (written into the VM via instance metadata):
   cosmos versions:  $COSMOS_VERSIONS
   threads values:   $THREADS_VALUES
   reps per cell:    $REPS
+  airflow base:     $AIRFLOW_BASE
+  chart version:    $CHART_VERSION
   repo branch:      $REPO_BRANCH   (from $REPO_URL)
 
 Expected wall-clock: ~3 hrs for the default 2 \xc3\x97 3 \xc3\x97 5 = 30-rep sweep.
@@ -162,7 +176,9 @@ gcloud --project="$GCP_PROJECT" compute instances create "$VM_NAME" \
 "repo-branch=${STAGE_DIR}/repo-branch,"\
 "cosmos-versions=${STAGE_DIR}/cosmos-versions,"\
 "threads-values=${STAGE_DIR}/threads-values,"\
-"reps=${STAGE_DIR}/reps"
+"reps=${STAGE_DIR}/reps,"\
+"airflow-base=${STAGE_DIR}/airflow-base,"\
+"chart-version=${STAGE_DIR}/chart-version"
 
 cat <<EOF
 

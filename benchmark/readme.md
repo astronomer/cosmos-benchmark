@@ -426,12 +426,40 @@ Override via env vars on `provision.sh`:
 | `COSMOS_VERSIONS` | `1.13.1 1.14.2`               | Space-separated; first version is also the one `setup.sh` deploys initially. |
 | `THREADS_VALUES`  | `4 8 16`                      | Space-separated. Patched into the producer pod's `profiles.yml` between cells. |
 | `REPS`            | `5`                           | Reps per `(cosmos, threads)` cell. |
+| `AIRFLOW_BASE`    | `apache/airflow:3.2.0`        | Dockerfile `FROM` image. Must be a matched pair with `CHART_VERSION` — chart appVersion === image tag. |
+| `CHART_VERSION`   | `1.21.0`                      | apache-airflow Helm chart version. `1.21.0` → Airflow 3.2.0, `1.20.0` → Airflow 3.1.8, `1.19.0` → Airflow 3.1.7. |
 | `REPO_URL`        | upstream cosmos-benchmark repo | Useful when forking. |
 | `REPO_BRANCH`     | `main`                        | Point at a feature branch when iterating on the remote scripts themselves. |
 
 `monitor.sh`, `fetch-results.sh`, and `teardown.sh` share the same
 `GCP_PROJECT`, `GCP_ZONE`, and `VM_NAME` env vars; if you override one on
 `provision.sh`, override it on the others too.
+
+### Cosmos version × Airflow version compatibility
+
+`astronomer-cosmos` releases before `1.14.0` have a top-level
+`from airflow.configuration import conf` in `cosmos/settings.py`. Airflow
+3.2 changed config init to eagerly enumerate providers (including Cosmos),
+which makes that import circular — every Airflow pod CrashLoopBackOff's
+with `ImportError: cannot import name 'conf' from partially initialized
+module 'airflow.configuration'`. Symptom in `kubectl get pods -n airflow`:
+the `airflow-run-airflow-migrations` Job hits BackoffLimitExceeded and
+every other pod sits in `Init:CrashLoopBackOff` on `wait-for-airflow-migrations`.
+
+To sweep a Cosmos version that pre-dates 1.14 (e.g. comparing 1.13.1 vs
+1.14.2 for a regression investigation), drop the cluster to Airflow 3.1.x
+by setting **both** `AIRFLOW_BASE` and `CHART_VERSION` to a matched pair:
+
+```
+AIRFLOW_BASE=apache/airflow:3.1.8 CHART_VERSION=1.20.0 \
+COSMOS_VERSIONS="1.13.1 1.14.2" \
+  ./provision.sh
+```
+
+Airflow 3.1 doesn't have the eager-provider-config-init path, so Cosmos
+1.13.x imports cleanly. Note this means the resulting numbers aren't
+directly comparable to the published 2026-05-15 LOCAL-vs-WATCHER table
+(which was on Airflow 3.2 + chart 1.21.0).
 
 Analysing performance
 ---------------------

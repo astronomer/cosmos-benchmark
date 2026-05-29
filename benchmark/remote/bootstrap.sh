@@ -2,18 +2,23 @@
 #
 # Runs on the GCE VM as root, kicked off by provision.sh's inline startup
 # script. Installs the tools the existing benchmark scripts need (Docker, kind,
-# kubectl, helm, python3, jq, lsof) and then hands off to run-sweep.sh.
+# kubectl, helm, python3, jq, lsof) plus the Google Cloud Ops Agent (so VM
+# memory metrics show up in Cloud Monitoring) and then hands off to run-sweep.sh.
 #
 # Inputs (exported by the inline startup script before invoking us):
 #   COSMOS_VERSIONS   space-separated list of astronomer-cosmos versions
 #   THREADS_VALUES    space-separated list of dbt threads values
 #   REPS              integer reps per (cosmos, threads) cell
+#   AIRFLOW_BASE      Dockerfile FROM image (e.g. apache/airflow:3.2.0)
+#   CHART_VERSION     apache-airflow Helm chart version (e.g. 1.21.0)
 
 set -euxo pipefail
 
 : "${COSMOS_VERSIONS:?must be set by provision.sh startup-script}"
 : "${THREADS_VALUES:?must be set by provision.sh startup-script}"
 : "${REPS:?must be set by provision.sh startup-script}"
+: "${AIRFLOW_BASE:?must be set by provision.sh startup-script}"
+: "${CHART_VERSION:?must be set by provision.sh startup-script}"
 
 REPO_DIR="/opt/cosmos-bench/cosmos-benchmark"
 KIND_VERSION="v0.23.0"
@@ -27,6 +32,17 @@ apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates curl gnupg jq lsof python3 python3-pip \
   apt-transport-https software-properties-common
+
+# --- Google Cloud Ops Agent (VM memory + process metrics) -------------------
+# Without this, Cloud Monitoring only shows CPU/disk/network for the VM. The
+# Ops Agent backfills memory utilisation, swap, paging, and per-process
+# stats — useful for comparing sweep runs at the VM level (independent of the
+# in-cluster Prometheus stack the benchmark itself uses).
+if ! systemctl is-active --quiet google-cloud-ops-agent 2>/dev/null; then
+  curl -fsSL -o /tmp/add-google-cloud-ops-agent-repo.sh \
+    https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
+  bash /tmp/add-google-cloud-ops-agent-repo.sh --also-install
+fi
 
 # --- Docker via official convenience script ---------------------------------
 if ! command -v docker >/dev/null 2>&1; then

@@ -7,9 +7,11 @@
 # rebuilding/redeploying the benchmark image between Cosmos versions.
 #
 # Inputs (exported by bootstrap.sh from instance metadata):
-#   COSMOS_VERSIONS   space-separated list (e.g. "1.13.1 1.14.1")
+#   COSMOS_VERSIONS   space-separated list (e.g. "1.13.1 1.14.2")
 #   THREADS_VALUES    space-separated list (e.g. "4 8 16")
 #   REPS              integer reps per (cosmos, threads) cell
+#   AIRFLOW_BASE      Dockerfile FROM image (e.g. apache/airflow:3.1.8)
+#   CHART_VERSION     apache-airflow Helm chart version (e.g. 1.20.0)
 #
 # Outputs (under /opt/cosmos-bench/results/):
 #   sweep-<timestamp>.csv   raw per-rep metrics (RFC 4180 CSV)
@@ -24,6 +26,8 @@ set -euxo pipefail
 : "${COSMOS_VERSIONS:?must be set by bootstrap.sh}"
 : "${THREADS_VALUES:?must be set by bootstrap.sh}"
 : "${REPS:?must be set by bootstrap.sh}"
+: "${AIRFLOW_BASE:?must be set by bootstrap.sh}"
+: "${CHART_VERSION:?must be set by bootstrap.sh}"
 
 REPO_ROOT="/opt/cosmos-bench/cosmos-benchmark"
 RESULTS_DIR="/opt/cosmos-bench/results"
@@ -44,16 +48,19 @@ cd "${REPO_ROOT}/benchmark"
 # --- Initial provisioning ----------------------------------------------------
 # setup.sh creates the kind cluster, installs Prometheus + Airflow, builds the
 # benchmark image, and deploys the producer worker pool. We pass COSMOS_VERSION
-# + IMAGE_TAG so the very first deployment is already on cosmos=FIRST_VERSION;
-# subsequent versions get a fresh build + helm upgrade below.
+# + IMAGE_TAG + AIRFLOW_BASE + CHART_VERSION so the very first deployment is
+# already on cosmos=FIRST_VERSION; subsequent versions get a fresh build + helm
+# upgrade below.
 COSMOS_VERSION="$FIRST_VERSION" \
 IMAGE_TAG="cosmos-${FIRST_VERSION}" \
+AIRFLOW_BASE="$AIRFLOW_BASE" \
+CHART_VERSION="$CHART_VERSION" \
   ./setup.sh
 
 # Scale consumer pool to the 2026-05-15 published config (9 replicas) so this
 # sweep is comparable to the LOCAL-vs-WATCHER table in benchmark/readme.md.
 helm --kube-context kind-kind upgrade airflow apache-airflow/airflow \
-  --version 1.21.0 -n airflow -f pre-process/values.yml \
+  --version "${CHART_VERSION}" -n airflow -f pre-process/values.yml \
   --set "images.airflow.tag=cosmos-${FIRST_VERSION}" \
   --set workers.replicas=9
 kubectl --context kind-kind -n airflow rollout status \
@@ -78,13 +85,14 @@ for v in "${VERSIONS[@]}"; do
     pushd "${REPO_ROOT}"
     docker build \
       --build-arg "COSMOS_VERSION=${v}" \
+      --build-arg "AIRFLOW_BASE=${AIRFLOW_BASE}" \
       -t "benchmark:${TAG}" \
       -f benchmark/Dockerfile .
     popd
     kind load --name kind docker-image "benchmark:${TAG}"
 
     helm --kube-context kind-kind upgrade airflow apache-airflow/airflow \
-      --version 1.21.0 -n airflow -f pre-process/values.yml \
+      --version "${CHART_VERSION}" -n airflow -f pre-process/values.yml \
       --set "images.airflow.tag=${TAG}" \
       --set workers.replicas=9
     for d in airflow-api-server airflow-scheduler airflow-worker; do

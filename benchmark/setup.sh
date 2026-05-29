@@ -50,6 +50,11 @@ KUBE_CONTEXT="kind-${KIND_CLUSTER}"
 # from a remote runner — see benchmark/remote/run-sweep.sh.
 IMAGE_TAG="${IMAGE_TAG:-0.0.7}"
 
+# Airflow chart version (default ships Airflow 3.2.0); override `CHART_VERSION`
+# together with `AIRFLOW_BASE` to deploy an older Airflow release — e.g. when
+# sweeping a Cosmos version that pre-dates Airflow 3.2 compatibility.
+CHART_VERSION="${CHART_VERSION:-1.21.0}"
+
 # Create a Kind cluster (skip if it already exists)
 if kind get clusters | grep -q "^${KIND_CLUSTER}$"; then
   echo "Kind cluster '${KIND_CLUSTER}' already exists, skipping creation."
@@ -127,20 +132,24 @@ kubectl --context "${KUBE_CONTEXT}" port-forward svc/prometheus-kube-prometheus-
 echo $! > "$PID_FILE"
 
 # Build the docker image that will be used to run the experiments.
-# COSMOS_VERSION (optional) pins astronomer-cosmos at build time; if unset, the
-# Dockerfile's ARG default applies.
+# COSMOS_VERSION + AIRFLOW_BASE (both optional) pin those build-args; if unset,
+# the Dockerfile's ARG defaults apply.
 BUILD_ARGS=()
 if [ -n "${COSMOS_VERSION:-}" ]; then
   BUILD_ARGS+=(--build-arg "COSMOS_VERSION=${COSMOS_VERSION}")
+fi
+if [ -n "${AIRFLOW_BASE:-}" ]; then
+  BUILD_ARGS+=(--build-arg "AIRFLOW_BASE=${AIRFLOW_BASE}")
 fi
 cd ..; docker build "${BUILD_ARGS[@]}" -t "benchmark:${IMAGE_TAG}" -f benchmark/Dockerfile .
 kind load --name "${KIND_CLUSTER}" docker-image "benchmark:${IMAGE_TAG}"
 cd benchmark
 
 # --- Distributed Airflow setup for Helm-based benchmark experiments. -----------
-# Chart 1.21.0 ships Airflow 3.2.0 (api-server replaces the legacy webserver);
-# our benchmark image is built FROM apache/airflow:3.2.0 (see benchmark/Dockerfile),
-# so it ships the matching Airflow runtime — no apache-airflow pin in requirements.txt.
+# Default chart 1.21.0 ships Airflow 3.2.0 (api-server replaces the legacy
+# webserver); override CHART_VERSION + AIRFLOW_BASE together when targeting an
+# older Airflow release. Chart appVersion must match the image's airflow
+# runtime — mismatched pairs surface as migration-job CrashLoopBackOff.
 
 kubectl --context "${KUBE_CONTEXT}" create namespace airflow --dry-run=client -o yaml \
   | kubectl --context "${KUBE_CONTEXT}" apply -f -
@@ -153,7 +162,7 @@ if [ "$IMAGE_TAG" != "0.0.7" ]; then
   HELM_SET_TAG=(--set "images.airflow.tag=${IMAGE_TAG}")
 fi
 helm --kube-context "${KUBE_CONTEXT}" upgrade --install airflow apache-airflow/airflow \
-  --version 1.21.0 \
+  --version "${CHART_VERSION}" \
   --namespace airflow \
   -f pre-process/values.yml \
   "${HELM_SET_TAG[@]}"
