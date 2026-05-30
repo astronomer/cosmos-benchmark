@@ -24,7 +24,7 @@ KEY_FILE="${REPO_ROOT}/benchmark/pre-process/key.json"
 GCP_PROJECT="${GCP_PROJECT:-astronomer-dag-authoring}"
 GCP_ZONE="${GCP_ZONE:-us-central1-a}"
 VM_NAME="${VM_NAME:-cosmos-bench}"
-MACHINE_TYPE="${MACHINE_TYPE:-n2-custom-12-49152}"
+MACHINE_TYPE="${MACHINE_TYPE:-n2-standard-16}"
 DISK_SIZE_GB="${DISK_SIZE_GB:-100}"
 IMAGE_FAMILY="${IMAGE_FAMILY:-ubuntu-2204-lts}"
 IMAGE_PROJECT="${IMAGE_PROJECT:-ubuntu-os-cloud}"
@@ -148,7 +148,7 @@ About to create GCE VM with this config:
   project:          $GCP_PROJECT
   zone:             $GCP_ZONE
   name:             $VM_NAME
-  machine type:     $MACHINE_TYPE     (12 vCPU / 48 GiB, ~\$0.58/hr in us-central1)
+  machine type:     $MACHINE_TYPE     (16 vCPU / 64 GiB, ~\$0.78/hr in us-central1)
   disk:             ${DISK_SIZE_GB} GiB pd-ssd
   image:            $IMAGE_FAMILY ($IMAGE_PROJECT)
   account:          $ACTIVE_ACCOUNT
