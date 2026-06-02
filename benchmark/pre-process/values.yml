@@ -44,3 +44,24 @@ workers:
     limits:
       cpu: "1"
       memory: "2Gi"
+  # BOSS-418: the synthetic_large_dbt_project Postgres profile (profiles.yml)
+  # reads these env vars. Point them at the chart's bundled Postgres and write
+  # dbt views into a dedicated `synthetic` schema so they never touch Airflow's
+  # own metadata tables in `public`. The producer pool inherits this env because
+  # render-producer-worker.py clones the worker Deployment's pod spec.
+  env:
+    - name: POSTGRES_HOST
+      value: airflow-postgresql
+    - name: POSTGRES_USER
+      value: postgres
+    - name: POSTGRES_DB
+      value: postgres
+    - name: POSTGRES_SCHEMA
+      value: synthetic
+    - name: POSTGRES_PORT
+      value: "5432"
+    - name: POSTGRES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: airflow-postgresql
+          key: postgres-password

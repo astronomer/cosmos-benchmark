@@ -151,12 +151,77 @@ benchmark targets. Pass any subset to `run-complex-test.sh` via the
   tasks watch its XCom for completion. Requires Cosmos ≥ 1.11.
 * `example_operator_build` — single `DbtBuildLocalOperator` task that
   runs `dbt build` on the project in one shot.
+* `synthetic_watcher_{1,5,10,13}tg` — WATCHER DAGs over the
+  `synthetic_large_dbt_project`, each with N Cosmos task groups (1/5/10/13).
+  Used to measure how WATCHER **sensor** memory scales with task-group count
+  (see *WATCHER sensor memory vs. task groups* below).
 
 Example:
 
 ```
 DAGS="example_dbt_dag_watcher" REPS=1 ./run-complex-test.sh
 ```
+
+WATCHER sensor memory vs. task groups (BOSS-418)
+------------------------------------------------
+
+Investigation of the Medtronic report of ~1.1 GB RSS per WATCHER **sensor**
+task (manifest <20 MiB but >23,000 nodes), versus our earlier ~550 MB.
+
+**Mechanism.** In WATCHER mode every sensor task re-imports the DAG on its
+worker at startup, which instantiates *every* `DbtTaskGroup` in the file — and
+each group does a full manifest parse + graph build (it loads all nodes, then
+filters to its `select`). So per-sensor peak RSS grows linearly with the
+**number of task groups** and with **manifest size**, even though the sensor
+runs no dbt. Memory is measured per task with Cosmos debug mode
+(`AIRFLOW__COSMOS__ENABLE_DEBUG_MODE=True` → `cosmos_debug_max_memory_mb` XCom +
+the `Max memory usage (RSS, incl. children)` log line).
+
+**Measured** (per-sensor peak RSS, MB):
+
+| Manifest (`N_MODELS`) | 1 group | 5 groups | 10 groups | 13 groups | slope        |
+| --------------------- | ------- | -------- | --------- | --------- | ------------ |
+| 3,000                 | 322     | 380      | 424       | —         | 11.3 MB/grp  |
+| 23,000                | 486     | 865      | 1295      | 1555      | 88.7 MB/grp  |
+
+The 23k line is `RSS ≈ 407 + 88.7·groups` (R²=0.9995). **23k × 13 groups ≈
+1.55 GB reproduces the Medtronic ~1.1 GB.** The per-group slope scales with
+manifest size (88.7/11.3 ≈ 7.85 ≈ node ratio 23k/3k). Per-sensor RSS is
+**independent of sensors-per-group** (1 group × 250 nodes = 1 group × 25 nodes
+= 322 MB), confirming task-group *count* is the driver.
+
+**Mitigation for large projects:** fewer task groups. On a 23k-node manifest
+each group adds ~89 MB/sensor, so consolidating 13 → 4 groups saves ~800
+MB/sensor. (Deeper fix is upstream in Cosmos: parse the manifest once and share
+the graph across groups instead of re-parsing per group per task.)
+
+**Reproducing.** The synthetic project is generated deterministically, so node
+count is a build knob — build the image at the desired scale, then run the DAGs:
+
+```
+# 23k-node manifest (Medtronic scale); default N_MODELS is 3000
+docker build -t benchmark:0.0.7 --build-arg N_MODELS=23000 -f benchmark/Dockerfile .
+kind load --name kind docker-image benchmark:0.0.7
+# ... helm upgrade / rollout restart to pick up the image ...
+
+# Seed once so raw-layer views build (raw models ref only seed_dim):
+PROD=$(kubectl --context kind-kind -n airflow get pod -l cosmos-role=producer -o jsonpath='{.items[0].metadata.name}')
+kubectl --context kind-kind exec -n airflow "$PROD" -c worker -- bash -lc \
+  'cd /opt/airflow/dbt/synthetic_large_dbt_project && dbt seed --profiles-dir . --project-dir .'
+
+DAGS="synthetic_watcher_1tg synthetic_watcher_13tg" REPS=1 ./run-complex-test.sh
+```
+
+Collect per-sensor RSS from the `cosmos_debug_max_memory_mb` XComs (one per
+`*_run` sensor task; exclude the `*producer*` tasks).
+
+> **Note — fragility at scale.** At 23k nodes the WATCHER **producer** (which
+> also re-parses the manifest per group at import, plus dbt's own parse) rides
+> the memory limit and intermittently process-OOMs (empty-log SIGKILL); a dead
+> producer fails its whole sensor group. Getting clean sensor readings at 23k
+> required a single sequential worker (`workers.replicas=1`,
+> `worker_concurrency=1`) and a larger producer pool (`PRODUCER_MEM=8Gi`). This
+> matches the customer's "sensors hit-or-miss at concurrency 2" symptom.
 
 Per-pool metrics
 ----------------
