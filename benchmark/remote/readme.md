@@ -18,11 +18,13 @@ Quickstart (from this directory):
 Defaults:
 
 * GCP project `astronomer-dag-authoring`, zone `us-central1-a`
-* VM `n2-custom-12-49152` (12 vCPU / 48 GiB, ~$0.58/hr, mirrors an Apple M4 Pro)
+* VM `n2-standard-16` (16 vCPU / 64 GiB, ~$0.78/hr) — sized to fit the
+  9-consumer + 1-producer pool; see the main readme for the cpu-reservation
+  math and the smaller `n2-custom-12-49152` alternative
 * Sweep `cosmos ∈ {1.13.1, 1.14.2}` × `threads ∈ {4, 8, 16}` × `5 reps`
-  → ~3 hrs of VM time (≈ $1.75)
+  → ~3 hrs of VM time (≈ $2.35)
 
-Override via env vars on `provision.sh` (e.g. `MACHINE_TYPE=n2-standard-16
+Override via env vars on `provision.sh` (e.g. `MACHINE_TYPE=n2-standard-32
 COSMOS_VERSIONS="1.13.1 1.14.0 1.14.2" ./provision.sh`). `monitor.sh`,
 `fetch-results.sh`, and `teardown.sh` all read the same `GCP_PROJECT`,
 `GCP_ZONE`, and `VM_NAME` — override them consistently.

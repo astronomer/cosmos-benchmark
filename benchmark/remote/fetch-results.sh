@@ -48,9 +48,20 @@ if [ -z "$LATEST_CSV" ]; then
   exit 1
 fi
 
+# Always fetch the CSV. The summary markdown is only written at the end of a
+# sweep, so with --no-wait (partial fetch mid-run) sweep-latest.md may not
+# resolve yet — only add it to the scp args when it points at a real file,
+# otherwise gcloud scp would get an empty source argument and fail.
+SCP_SOURCES=("${VM_NAME}:${LATEST_CSV}")
+if [ -n "$LATEST_MD" ]; then
+  SCP_SOURCES+=("${VM_NAME}:${LATEST_MD}")
+else
+  echo "NOTE: summary markdown not present yet (sweep may still be running); fetching CSV only."
+fi
+
 gcloud --project="$GCP_PROJECT" compute scp \
   --zone="$GCP_ZONE" \
-  "${VM_NAME}:${LATEST_CSV}" "${VM_NAME}:${LATEST_MD}" \
+  "${SCP_SOURCES[@]}" \
   "$LOCAL_RESULTS/"
 
 echo

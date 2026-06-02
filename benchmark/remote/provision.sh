@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Provision a single GCE VM that runs the cosmos-benchmark WATCHER sweep
-# against Cosmos 1.13.1 and 1.14.1, then writes a CSV the laptop can fetch.
+# (default: Cosmos 1.13.1 vs 1.14.2), then writes a CSV the laptop can fetch.
 # The VM does all real work in its startup script (bootstrap.sh + run-sweep.sh
 # from the repo), so this script's job is just to:
 #
@@ -177,6 +177,10 @@ if gcloud --project="$GCP_PROJECT" compute instances describe "$VM_NAME" \
   exit 1
 fi
 
+# Minimal OAuth scopes: the only thing on the VM that talks to a Google API
+# via the instance service account is the Ops Agent (logging + monitoring).
+# BigQuery access goes through the mounted key.json, not the VM's SA, so we
+# deliberately avoid the broad cloud-platform scope.
 gcloud --project="$GCP_PROJECT" compute instances create "$VM_NAME" \
   --zone="$GCP_ZONE" \
   --machine-type="$MACHINE_TYPE" \
@@ -184,7 +188,7 @@ gcloud --project="$GCP_PROJECT" compute instances create "$VM_NAME" \
   --image-project="$IMAGE_PROJECT" \
   --boot-disk-size="${DISK_SIZE_GB}GB" \
   --boot-disk-type=pd-ssd \
-  --scopes=cloud-platform \
+  --scopes=logging-write,monitoring-write \
   --metadata-from-file=\
 "startup-script=${STAGE_DIR}/startup-script,"\
 "bigquery-key-json=${STAGE_DIR}/bigquery-key-json,"\
