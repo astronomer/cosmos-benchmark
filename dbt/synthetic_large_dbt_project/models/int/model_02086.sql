@@ -1,0 +1,9 @@
+{{ config(materialized='view') }}
+
+with sources as (
+    select 1 as id
+    from {{ ref('model_00915') }},
+        {{ ref('model_01194') }},
+        {{ ref('model_01291') }}
+)
+select id, 'model_02086' as name from sources

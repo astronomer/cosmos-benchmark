@@ -1,0 +1,2253 @@
+version: 2
+
+models:
+  - name: model_02250
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02251
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02252
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02253
+    config:
+      tags: [mart, reporting, domain_ops, deprecated, expensive]
+  - name: model_02254
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02255
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02256
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02257
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02258
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02259
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02260
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02261
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02262
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02263
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02264
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02265
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02266
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02267
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02268
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02269
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02270
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02271
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02272
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02273
+    config:
+      tags: [mart, reporting, domain_marketing, standard, expensive]
+  - name: model_02274
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02275
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02276
+    config:
+      tags: [mart, reporting, domain_finance, standard, flaky]
+  - name: model_02277
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02278
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02279
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02280
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02281
+    config:
+      tags: [mart, reporting, domain_ops, standard, expensive]
+  - name: model_02282
+    config:
+      tags: [mart, reporting, domain_finance, critical, expensive]
+  - name: model_02283
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02284
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02285
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02286
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02287
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02288
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02289
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02290
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02291
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02292
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02293
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02294
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02295
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02296
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02297
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, flaky]
+  - name: model_02298
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02299
+    config:
+      tags: [mart, reporting, domain_sales, critical, expensive]
+  - name: model_02300
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02301
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02302
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02303
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02304
+    config:
+      tags: [mart, reporting, domain_finance, standard, expensive]
+  - name: model_02305
+    config:
+      tags: [mart, reporting, domain_ops, standard, flaky]
+  - name: model_02306
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02307
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02308
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02309
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated, flaky]
+  - name: model_02310
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02311
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02312
+    config:
+      tags: [mart, reporting, domain_product, standard, flaky]
+  - name: model_02313
+    config:
+      tags: [mart, reporting, domain_ops, standard, expensive]
+  - name: model_02314
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02315
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02316
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02317
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02318
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02319
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02320
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02321
+    config:
+      tags: [mart, reporting, domain_finance, critical, expensive]
+  - name: model_02322
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02323
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02324
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02325
+    config:
+      tags: [mart, reporting, domain_sales, standard, flaky]
+  - name: model_02326
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02327
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02328
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02329
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02330
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated, expensive]
+  - name: model_02331
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02332
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02333
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02334
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02335
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02336
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02337
+    config:
+      tags: [mart, reporting, domain_finance, standard, flaky]
+  - name: model_02338
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02339
+    config:
+      tags: [mart, reporting, domain_ops, deprecated, expensive]
+  - name: model_02340
+    config:
+      tags: [mart, reporting, domain_product, standard, flaky]
+  - name: model_02341
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02342
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02343
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02344
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02345
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02346
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02347
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02348
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02349
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02350
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02351
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02352
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02353
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02354
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02355
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02356
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02357
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02358
+    config:
+      tags: [mart, reporting, domain_sales, standard, flaky]
+  - name: model_02359
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02360
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02361
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02362
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02363
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02364
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02365
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02366
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02367
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02368
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02369
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02370
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02371
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02372
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02373
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02374
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02375
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02376
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02377
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02378
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02379
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02380
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02381
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02382
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02383
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02384
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02385
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02386
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02387
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02388
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02389
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02390
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02391
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02392
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02393
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02394
+    config:
+      tags: [mart, reporting, domain_product, standard, flaky]
+  - name: model_02395
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02396
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02397
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02398
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02399
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02400
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02401
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02402
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02403
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02404
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02405
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02406
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02407
+    config:
+      tags: [mart, reporting, domain_marketing, critical, flaky]
+  - name: model_02408
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02409
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02410
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02411
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02412
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02413
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02414
+    config:
+      tags: [mart, reporting, domain_sales, critical, flaky]
+  - name: model_02415
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02416
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02417
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02418
+    config:
+      tags: [mart, reporting, domain_ops, critical, flaky]
+  - name: model_02419
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02420
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02421
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02422
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02423
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02424
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02425
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02426
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02427
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02428
+    config:
+      tags: [mart, reporting, domain_sales, critical, expensive]
+  - name: model_02429
+    config:
+      tags: [mart, reporting, domain_marketing, standard, flaky]
+  - name: model_02430
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02431
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02432
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02433
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02434
+    config:
+      tags: [mart, reporting, domain_product, critical, flaky]
+  - name: model_02435
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02436
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02437
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02438
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02439
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02440
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02441
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02442
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02443
+    config:
+      tags: [mart, reporting, domain_finance, deprecated, expensive]
+  - name: model_02444
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02445
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02446
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02447
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02448
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02449
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02450
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02451
+    config:
+      tags: [mart, reporting, domain_ops, standard, expensive]
+  - name: model_02452
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02453
+    config:
+      tags: [mart, reporting, domain_product, critical, flaky]
+  - name: model_02454
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02455
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02456
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02457
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02458
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02459
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02460
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02461
+    config:
+      tags: [mart, reporting, domain_marketing, standard, expensive]
+  - name: model_02462
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02463
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02464
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02465
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02466
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02467
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02468
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02469
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02470
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02471
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02472
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02473
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02474
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02475
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02476
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02477
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02478
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02479
+    config:
+      tags: [mart, reporting, domain_finance, critical, flaky]
+  - name: model_02480
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02481
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02482
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02483
+    config:
+      tags: [mart, reporting, domain_product, standard, flaky]
+  - name: model_02484
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02485
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02486
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02487
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02488
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02489
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02490
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02491
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02492
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02493
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, flaky]
+  - name: model_02494
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02495
+    config:
+      tags: [mart, reporting, domain_product, critical, expensive]
+  - name: model_02496
+    config:
+      tags: [mart, reporting, domain_ops, critical, flaky]
+  - name: model_02497
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02498
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02499
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02500
+    config:
+      tags: [mart, reporting, domain_marketing, critical, expensive]
+  - name: model_02501
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02502
+    config:
+      tags: [mart, reporting, domain_marketing, standard, flaky]
+  - name: model_02503
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02504
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02505
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02506
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02507
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02508
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02509
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02510
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02511
+    config:
+      tags: [mart, reporting, domain_sales, standard, flaky]
+  - name: model_02512
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02513
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02514
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02515
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02516
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02517
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02518
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02519
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02520
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02521
+    config:
+      tags: [mart, reporting, domain_sales, critical, flaky]
+  - name: model_02522
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02523
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02524
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02525
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02526
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02527
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02528
+    config:
+      tags: [mart, reporting, domain_finance, standard, expensive]
+  - name: model_02529
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02530
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02531
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02532
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02533
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02534
+    config:
+      tags: [mart, reporting, domain_marketing, critical, flaky]
+  - name: model_02535
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02536
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02537
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02538
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02539
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02540
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02541
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02542
+    config:
+      tags: [mart, reporting, domain_sales, standard, expensive]
+  - name: model_02543
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02544
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02545
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, expensive]
+  - name: model_02546
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02547
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02548
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02549
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02550
+    config:
+      tags: [mart, reporting, domain_ops, critical, flaky]
+  - name: model_02551
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02552
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02553
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02554
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02555
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02556
+    config:
+      tags: [mart, reporting, domain_product, standard, flaky]
+  - name: model_02557
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02558
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02559
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02560
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02561
+    config:
+      tags: [mart, reporting, domain_product, deprecated, expensive]
+  - name: model_02562
+    config:
+      tags: [mart, reporting, domain_sales, critical, flaky]
+  - name: model_02563
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02564
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02565
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02566
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02567
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02568
+    config:
+      tags: [mart, reporting, domain_finance, standard, flaky, expensive]
+  - name: model_02569
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02570
+    config:
+      tags: [mart, reporting, domain_product, critical, expensive]
+  - name: model_02571
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02572
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02573
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02574
+    config:
+      tags: [mart, reporting, domain_product, standard, flaky]
+  - name: model_02575
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02576
+    config:
+      tags: [mart, reporting, domain_ops, critical, flaky]
+  - name: model_02577
+    config:
+      tags: [mart, reporting, domain_marketing, standard, flaky]
+  - name: model_02578
+    config:
+      tags: [mart, reporting, domain_ops, deprecated, flaky]
+  - name: model_02579
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02580
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02581
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02582
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02583
+    config:
+      tags: [mart, reporting, domain_ops, deprecated, expensive]
+  - name: model_02584
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02585
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, flaky]
+  - name: model_02586
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02587
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02588
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02589
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02590
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02591
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02592
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02593
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02594
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02595
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02596
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02597
+    config:
+      tags: [mart, reporting, domain_ops, deprecated, flaky]
+  - name: model_02598
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02599
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02600
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02601
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02602
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02603
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02604
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02605
+    config:
+      tags: [mart, reporting, domain_finance, critical, flaky]
+  - name: model_02606
+    config:
+      tags: [mart, reporting, domain_ops, critical, flaky]
+  - name: model_02607
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02608
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated, flaky]
+  - name: model_02609
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02610
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02611
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02612
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02613
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02614
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02615
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02616
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02617
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02618
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02619
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02620
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02621
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02622
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02623
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02624
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02625
+    config:
+      tags: [mart, reporting, domain_finance, critical, expensive]
+  - name: model_02626
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02627
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02628
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02629
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02630
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02631
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02632
+    config:
+      tags: [mart, reporting, domain_finance, standard, flaky]
+  - name: model_02633
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02634
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02635
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02636
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02637
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, expensive]
+  - name: model_02638
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02639
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02640
+    config:
+      tags: [mart, reporting, domain_ops, standard, flaky]
+  - name: model_02641
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02642
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02643
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02644
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02645
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02646
+    config:
+      tags: [mart, reporting, domain_ops, standard, flaky]
+  - name: model_02647
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02648
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02649
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02650
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02651
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02652
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02653
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, expensive]
+  - name: model_02654
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02655
+    config:
+      tags: [mart, reporting, domain_product, critical, flaky]
+  - name: model_02656
+    config:
+      tags: [mart, reporting, domain_sales, standard, expensive]
+  - name: model_02657
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02658
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02659
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02660
+    config:
+      tags: [mart, reporting, domain_finance, critical, flaky]
+  - name: model_02661
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02662
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, flaky]
+  - name: model_02663
+    config:
+      tags: [mart, reporting, domain_marketing, critical, expensive]
+  - name: model_02664
+    config:
+      tags: [mart, reporting, domain_marketing, critical, expensive]
+  - name: model_02665
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02666
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02667
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02668
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02669
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02670
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02671
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02672
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02673
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02674
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, flaky]
+  - name: model_02675
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02676
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02677
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02678
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02679
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02680
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02681
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02682
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02683
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02684
+    config:
+      tags: [mart, reporting, domain_ops, standard, flaky]
+  - name: model_02685
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02686
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02687
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02688
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02689
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02690
+    config:
+      tags: [mart, reporting, domain_marketing, critical, flaky]
+  - name: model_02691
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02692
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02693
+    config:
+      tags: [mart, reporting, domain_ops, critical, flaky]
+  - name: model_02694
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02695
+    config:
+      tags: [mart, reporting, domain_finance, standard, flaky]
+  - name: model_02696
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02697
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02698
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02699
+    config:
+      tags: [mart, reporting, domain_product, critical, expensive]
+  - name: model_02700
+    config:
+      tags: [mart, reporting, domain_marketing, critical, flaky]
+  - name: model_02701
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02702
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02703
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02704
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, flaky]
+  - name: model_02705
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02706
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02707
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02708
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02709
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02710
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02711
+    config:
+      tags: [mart, reporting, domain_marketing, critical, expensive]
+  - name: model_02712
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02713
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02714
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02715
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02716
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02717
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02718
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02719
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02720
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02721
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02722
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02723
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02724
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02725
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02726
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02727
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02728
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02729
+    config:
+      tags: [mart, reporting, domain_product, standard, flaky]
+  - name: model_02730
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02731
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02732
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02733
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02734
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02735
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02736
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02737
+    config:
+      tags: [mart, reporting, domain_finance, critical, flaky]
+  - name: model_02738
+    config:
+      tags: [mart, reporting, domain_marketing, critical, expensive]
+  - name: model_02739
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02740
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02741
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02742
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02743
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02744
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02745
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02746
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02747
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02748
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02749
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02750
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02751
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02752
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02753
+    config:
+      tags: [mart, reporting, domain_marketing, standard, flaky]
+  - name: model_02754
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02755
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02756
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02757
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02758
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02759
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02760
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02761
+    config:
+      tags: [mart, reporting, domain_product, critical, expensive]
+  - name: model_02762
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02763
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02764
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02765
+    config:
+      tags: [mart, reporting, domain_product, critical, flaky]
+  - name: model_02766
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02767
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02768
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02769
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02770
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02771
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02772
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02773
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02774
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02775
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02776
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02777
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02778
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02779
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02780
+    config:
+      tags: [mart, reporting, domain_finance, deprecated, expensive]
+  - name: model_02781
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02782
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02783
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02784
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02785
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02786
+    config:
+      tags: [mart, reporting, domain_sales, standard, flaky]
+  - name: model_02787
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02788
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02789
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02790
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02791
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02792
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02793
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02794
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02795
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02796
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02797
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02798
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02799
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02800
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02801
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02802
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02803
+    config:
+      tags: [mart, reporting, domain_sales, critical, flaky]
+  - name: model_02804
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02805
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02806
+    config:
+      tags: [mart, reporting, domain_ops, deprecated, expensive]
+  - name: model_02807
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, flaky, expensive]
+  - name: model_02808
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02809
+    config:
+      tags: [mart, reporting, domain_product, deprecated, flaky]
+  - name: model_02810
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02811
+    config:
+      tags: [mart, reporting, domain_product, critical, expensive]
+  - name: model_02812
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02813
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02814
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02815
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02816
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02817
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02818
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02819
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02820
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02821
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02822
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02823
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02824
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02825
+    config:
+      tags: [mart, reporting, domain_finance, standard, flaky, expensive]
+  - name: model_02826
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02827
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02828
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02829
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02830
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02831
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02832
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02833
+    config:
+      tags: [mart, reporting, domain_product, standard, expensive]
+  - name: model_02834
+    config:
+      tags: [mart, reporting, domain_finance, standard, expensive]
+  - name: model_02835
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02836
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02837
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02838
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02839
+    config:
+      tags: [mart, reporting, domain_finance, standard, flaky]
+  - name: model_02840
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02841
+    config:
+      tags: [mart, reporting, domain_finance, standard, flaky]
+  - name: model_02842
+    config:
+      tags: [mart, reporting, domain_product, deprecated, flaky]
+  - name: model_02843
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02844
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02845
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02846
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02847
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02848
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02849
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02850
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02851
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02852
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02853
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02854
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02855
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02856
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02857
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02858
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02859
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02860
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02861
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02862
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02863
+    config:
+      tags: [mart, reporting, domain_sales, critical, flaky]
+  - name: model_02864
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02865
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02866
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02867
+    config:
+      tags: [mart, reporting, domain_sales, critical, expensive]
+  - name: model_02868
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02869
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02870
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02871
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02872
+    config:
+      tags: [mart, reporting, domain_product, critical, flaky]
+  - name: model_02873
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02874
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02875
+    config:
+      tags: [mart, reporting, domain_product, standard, flaky]
+  - name: model_02876
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02877
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02878
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02879
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02880
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02881
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02882
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02883
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02884
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02885
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02886
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02887
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02888
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02889
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02890
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02891
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02892
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02893
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated, flaky]
+  - name: model_02894
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02895
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02896
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02897
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02898
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02899
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02900
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02901
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02902
+    config:
+      tags: [mart, reporting, domain_ops, critical, flaky, expensive]
+  - name: model_02903
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02904
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02905
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02906
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02907
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02908
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02909
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02910
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02911
+    config:
+      tags: [mart, reporting, domain_marketing, critical, expensive]
+  - name: model_02912
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02913
+    config:
+      tags: [mart, reporting, domain_marketing, critical, expensive]
+  - name: model_02914
+    config:
+      tags: [mart, reporting, domain_marketing, critical, flaky]
+  - name: model_02915
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02916
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02917
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02918
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02919
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02920
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02921
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02922
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02923
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02924
+    config:
+      tags: [mart, reporting, domain_product, deprecated, flaky]
+  - name: model_02925
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02926
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02927
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02928
+    config:
+      tags: [mart, reporting, domain_ops, standard, flaky]
+  - name: model_02929
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, flaky]
+  - name: model_02930
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02931
+    config:
+      tags: [mart, reporting, domain_product, deprecated]
+  - name: model_02932
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02933
+    config:
+      tags: [mart, reporting, domain_ops, critical, flaky]
+  - name: model_02934
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02935
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02936
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, expensive]
+  - name: model_02937
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02938
+    config:
+      tags: [mart, reporting, domain_product, standard]
+  - name: model_02939
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02940
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02941
+    config:
+      tags: [mart, reporting, domain_product, deprecated, flaky]
+  - name: model_02942
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02943
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02944
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02945
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02946
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02947
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02948
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02949
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02950
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02951
+    config:
+      tags: [mart, reporting, domain_ops, standard, flaky]
+  - name: model_02952
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02953
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02954
+    config:
+      tags: [mart, reporting, domain_finance, deprecated, flaky]
+  - name: model_02955
+    config:
+      tags: [mart, reporting, domain_ops, standard]
+  - name: model_02956
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02957
+    config:
+      tags: [mart, reporting, domain_finance, standard]
+  - name: model_02958
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02959
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02960
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02961
+    config:
+      tags: [mart, reporting, domain_finance, critical, flaky]
+  - name: model_02962
+    config:
+      tags: [mart, reporting, domain_sales, deprecated, flaky]
+  - name: model_02963
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02964
+    config:
+      tags: [mart, reporting, domain_ops, critical, flaky]
+  - name: model_02965
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02966
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02967
+    config:
+      tags: [mart, reporting, domain_sales, critical, expensive]
+  - name: model_02968
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02969
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02970
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02971
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02972
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02973
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02974
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02975
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02976
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02977
+    config:
+      tags: [mart, reporting, domain_sales, deprecated]
+  - name: model_02978
+    config:
+      tags: [mart, reporting, domain_product, standard, expensive]
+  - name: model_02979
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02980
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02981
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02982
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02983
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02984
+    config:
+      tags: [mart, reporting, domain_sales, standard]
+  - name: model_02985
+    config:
+      tags: [mart, reporting, domain_marketing, standard]
+  - name: model_02986
+    config:
+      tags: [mart, reporting, domain_finance, deprecated]
+  - name: model_02987
+    config:
+      tags: [mart, reporting, domain_finance, standard, expensive]
+  - name: model_02988
+    config:
+      tags: [mart, reporting, domain_ops, critical]
+  - name: model_02989
+    config:
+      tags: [mart, reporting, domain_sales, critical]
+  - name: model_02990
+    config:
+      tags: [mart, reporting, domain_ops, standard, expensive]
+  - name: model_02991
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02992
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02993
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02994
+    config:
+      tags: [mart, reporting, domain_marketing, deprecated]
+  - name: model_02995
+    config:
+      tags: [mart, reporting, domain_marketing, critical]
+  - name: model_02996
+    config:
+      tags: [mart, reporting, domain_product, critical]
+  - name: model_02997
+    config:
+      tags: [mart, reporting, domain_ops, deprecated]
+  - name: model_02998
+    config:
+      tags: [mart, reporting, domain_finance, critical]
+  - name: model_02999
+    config:
+      tags: [mart, reporting, domain_finance, standard]

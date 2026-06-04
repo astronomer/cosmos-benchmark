@@ -1,0 +1,24 @@
+name: 'synthetic_large_dbt_project'
+version: '1.0.0'
+config-version: 2
+
+profile: 'synthetic_large_dbt_project'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  synthetic_large_dbt_project:
+    raw:
+      +materialized: view
+    stg:
+      +materialized: view
+    int:
+      +materialized: view
+    mart:
+      +materialized: table
