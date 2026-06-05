@@ -16,11 +16,6 @@ ENV AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT=20000
 ENV AIRFLOW__CORE__DAG_FILE_PROCESSOR_TIMEOUT=20000
 ENV KEY_PATH=/opt/airflow/key.json
 
-# Cosmos debug mode tracks each task's peak RSS, pushes it to XCom
-# (cosmos_debug_max_memory_mb) and logs "Max memory usage (RSS, incl. children)".
-# Used by the WATCHER sensor-memory benchmark (see benchmark/readme.md).
-ENV AIRFLOW__COSMOS__ENABLE_DEBUG_MODE=True
-ENV AIRFLOW__COSMOS__DEBUG_MEMORY_POLL_INTERVAL_SECONDS=0.5
 
 # dbt-bigquery + astronomer-cosmos on top of the official airflow image.
 COPY benchmark/pre-process/requirements.txt /tmp/requirements.txt
