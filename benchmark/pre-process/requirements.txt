@@ -1,1 +1,8 @@
 dbt-bigquery==1.9
+# Postgres adapter for the synthetic_large_dbt_project profile (WATCHER memory bench).
+dbt-postgres~=1.9.0
+# Pinned: 1.14.1 ships Cosmos debug mode (cosmos_debug_max_memory_mb) and matches
+# the committed LOCAL-vs-WATCHER results.
+astronomer-cosmos==1.14.1
+# Required by Cosmos debug mode (AIRFLOW__COSMOS__ENABLE_DEBUG_MODE) to track task RSS.
+psutil
