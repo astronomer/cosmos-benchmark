@@ -1,4 +1,17 @@
-FROM apache/airflow:3.2.0
+# Pin the Airflow base image at build time so a sweep can target a specific
+# Airflow release without editing the Dockerfile. Cosmos releases older than
+# 1.14 have a circular-import bug against Airflow 3.2's eager provider-config
+# enumeration (cosmos/settings.py imports airflow.configuration at module
+# level), so a sweep that spans those Cosmos versions needs to drop to a
+# matching older Airflow base — see benchmark/readme.md.
+ARG AIRFLOW_BASE=apache/airflow:3.2.0
+FROM ${AIRFLOW_BASE}
+
+# Pin the astronomer-cosmos version at build time so a remote sweep can rebuild
+# the image once per Cosmos release without editing requirements.txt. Local
+# `setup.sh` keeps the default; remote `run-sweep.sh` overrides via
+# `docker build --build-arg COSMOS_VERSION=...`.
+ARG COSMOS_VERSION=1.14.2
 
 USER root
 RUN apt-get update && apt-get install -y \
@@ -18,8 +31,20 @@ ENV KEY_PATH=/opt/airflow/key.json
 
 
 # dbt-bigquery + astronomer-cosmos on top of the official airflow image.
+#
+# The final `pip install protobuf>=6` step undoes a downgrade that cosmos
+# 1.13.x triggers: one of its transitive deps pins `protobuf<5`, so installing
+# cosmos *after* dbt silently replaces protobuf 6.x with 4.25.9. That breaks
+# dbt-common ≥ 1.38, which calls
+# `MessageToJson(always_print_fields_with_no_presence=...)` — a kwarg only
+# added in protobuf 5.27. Symptom is `dbt deps` exiting with a `TypeError`.
+# Cosmos 1.14+ loosened the pin so the upgrade is a no-op there; keeping it
+# unconditional means a sweep across both 1.13 and 1.14 doesn't need a
+# version-aware Dockerfile.
 COPY benchmark/pre-process/requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt \
+ && pip install --no-cache-dir "astronomer-cosmos==${COSMOS_VERSION}" \
+ && pip install --no-cache-dir "protobuf>=6,<7"
 
 WORKDIR /opt/airflow
 

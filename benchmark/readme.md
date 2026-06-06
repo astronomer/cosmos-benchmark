@@ -137,6 +137,28 @@ ServiceAccount / ConfigMap / Secret refs / env / volumes / init-containers
 that the official chart wires up. Chart upgrades automatically flow
 through to the producer pool the next time `setup.sh` runs.
 
+Pinning the astronomer-cosmos version
+-------------------------------------
+
+The benchmark image installs `astronomer-cosmos` via a Dockerfile build-arg
+(`COSMOS_VERSION`, default `1.14.2`). `setup.sh` threads two env vars through
+to the build + helm install so you can pin a specific Cosmos release without
+editing files:
+
+* `COSMOS_VERSION` — passed to `docker build --build-arg`; e.g. `1.13.1`.
+* `IMAGE_TAG` — image tag used by `docker build`, `kind load`, and the chart's
+  `images.airflow.tag`. Defaults to `0.0.7` (matches `pre-process/values.yml`).
+
+```
+COSMOS_VERSION=1.13.1 IMAGE_TAG=cosmos-1.13.1 ./setup.sh
+```
+
+Always pick a non-default `IMAGE_TAG` when you change `COSMOS_VERSION` —
+Kubernetes won't re-pull a tag it has cached, so reusing `0.0.7` between
+Cosmos versions would leave the cluster running the previously-loaded image.
+Sweeping multiple Cosmos versions in one cluster lifecycle is automated by
+`benchmark/remote/run-sweep.sh` (see _Running benchmarks remotely on GCP_).
+
 Available DAGs
 --------------
 
@@ -419,6 +441,224 @@ Generate the summary table from the accumulated CSV:
 
 The full sweep takes ~2.8 hours on a single-node kind cluster sized at
 14 cpu / 28 GiB.
+
+Running benchmarks remotely on GCP
+==================================
+
+For fully isolated, repeatable comparisons — same Linux kernel, same VM
+shape, no contention with whatever's running on your laptop —
+`benchmark/remote/` ships a small set of scripts that provision a GCE VM,
+drive a Cosmos-version × dbt-threads sweep on it, and pull the resulting
+CSV back. The on-VM driver reuses `setup.sh` + `run-complex-test.sh` + the
+`post-process/` scripts unchanged; the only novel logic is iterating the
+matrix and rebuilding the benchmark image between Cosmos versions.
+
+Prerequisites on the laptop:
+
+* `gcloud` CLI authenticated (`gcloud auth login`), default project
+  `astronomer-dag-authoring` — or override with `GCP_PROJECT`.
+* A valid `benchmark/pre-process/key.json` (the same BigQuery key the
+  local flow uses; uploaded to the VM via instance metadata, never
+  baked into a public image).
+
+Default sweep:
+
+```
+cd benchmark/remote
+./provision.sh           # creates the VM and kicks off the sweep
+./monitor.sh             # tails the on-VM sweep log (optional, Ctrl-C is safe)
+./fetch-results.sh       # blocks until SWEEP_DONE, then scps CSV + .md into ../results/
+./teardown.sh            # deletes the VM and its boot disk
+```
+
+Defaults: `n2-standard-16` (16 vCPU / 64 GiB) in `us-central1-a`, 100 GiB
+pd-ssd, sweep matrix `COSMOS_VERSIONS="1.13.1 1.14.2"` ×
+`THREADS_VALUES="4 8 16"` × `REPS=5`. The default sweep takes ~3 hrs of VM
+wall time (≈ $2.35 at on-demand pricing). `teardown.sh` removes both the VM
+and its disk; nothing else lingers in the project.
+
+16 vCPU is needed to fit the 9-consumer + 1-producer worker pool used by the
+2026-05-15 baseline config: 9 consumers × 1 cpu + 1 producer × 1 cpu +
+scheduler 2 cpu + ~1.2 cpu of chart/monitoring overhead ≈ 13.2 cpu of
+*reservations*, which over-subscribes a 12-vCPU node (2 workers stay
+`Pending` with `Insufficient cpu`). If you shrink `workers.replicas`, a
+12-vCPU machine (`n2-custom-12-49152`, ~$0.58/hr) is enough.
+
+Override via env vars on `provision.sh`:
+
+| Var               | Default                       | Notes |
+| ----------------- | ----------------------------- | ----- |
+| `GCP_PROJECT`     | `astronomer-dag-authoring`    | Used for both billing and BigQuery. |
+| `GCP_ZONE`        | `us-central1-a`               |       |
+| `VM_NAME`         | `cosmos-bench`                |       |
+| `MACHINE_TYPE`    | `n2-standard-16`              | 16 vCPU / 64 GiB — sized to fit the 9-consumer + 1-producer pool (see above). Drop to `n2-custom-12-49152` (M4-Pro-comparable) if you also shrink `workers.replicas`. |
+| `DISK_SIZE_GB`    | `100`                         | pd-ssd. Images + kind data + Prometheus storage fit comfortably under 50 GiB. |
+| `COSMOS_VERSIONS` | `1.13.1 1.14.2`               | Space-separated; first version is also the one `setup.sh` deploys initially. |
+| `THREADS_VALUES`  | `4 8 16`                      | Space-separated. Patched into the producer pod's `profiles.yml` between cells. |
+| `REPS`            | `5`                           | Reps per `(cosmos, threads)` cell. |
+| `AIRFLOW_BASE`    | `apache/airflow:3.2.0`        | Dockerfile `FROM` image. Must be a matched pair with `CHART_VERSION` — chart appVersion === image tag. |
+| `CHART_VERSION`   | `1.21.0`                      | apache-airflow Helm chart version. `1.21.0` → Airflow 3.2.0, `1.20.0` → Airflow 3.1.8, `1.19.0` → Airflow 3.1.7. |
+| `REPO_URL`        | upstream cosmos-benchmark repo | Useful when forking. |
+| `REPO_BRANCH`     | `main`                        | Point at a feature branch when iterating on the remote scripts themselves. |
+
+`monitor.sh`, `fetch-results.sh`, and `teardown.sh` share the same
+`GCP_PROJECT`, `GCP_ZONE`, and `VM_NAME` env vars; if you override one on
+`provision.sh`, override it on the others too.
+
+### Cosmos version × Airflow version compatibility
+
+`astronomer-cosmos` releases before `1.14.0` have a top-level
+`from airflow.configuration import conf` in `cosmos/settings.py`. Airflow
+3.2 changed config init to eagerly enumerate providers (including Cosmos),
+which makes that import circular — every Airflow pod CrashLoopBackOff's
+with `ImportError: cannot import name 'conf' from partially initialized
+module 'airflow.configuration'`. Symptom in `kubectl get pods -n airflow`:
+the `airflow-run-airflow-migrations` Job hits BackoffLimitExceeded and
+every other pod sits in `Init:CrashLoopBackOff` on `wait-for-airflow-migrations`.
+
+To sweep a Cosmos version that pre-dates 1.14 (e.g. comparing 1.13.1 vs
+1.14.2 for a regression investigation), drop the cluster to Airflow 3.1.x
+by setting **both** `AIRFLOW_BASE` and `CHART_VERSION` to a matched pair:
+
+```
+AIRFLOW_BASE=apache/airflow:3.1.8 CHART_VERSION=1.20.0 \
+COSMOS_VERSIONS="1.13.1 1.14.2" \
+  ./provision.sh
+```
+
+Airflow 3.1 doesn't have the eager-provider-config-init path, so Cosmos
+1.13.x imports cleanly. Note this means the resulting numbers aren't
+directly comparable to the published 2026-05-15 LOCAL-vs-WATCHER table
+(which was on Airflow 3.2 + chart 1.21.0).
+
+### Worked example: Cosmos 1.13.1 vs 1.14.2 in WATCHER mode
+
+End-to-end recipe for the comparison this remote harness was built for —
+WATCHER execution mode, both Cosmos versions, across dbt `threads`
+{4, 8, 16}, 5 reps each (30 DAG runs total, ~3 hrs on `n2-standard-16`).
+Run everything from `benchmark/remote/`:
+
+```
+# 1. Provision the VM and kick off the full sweep. The four overrides:
+#    - AIRFLOW_BASE + CHART_VERSION: drop to Airflow 3.1.8 so Cosmos 1.13.1
+#      imports cleanly (see the compatibility note above).
+#    - COSMOS_VERSIONS: the two versions to compare.
+#    - THREADS_VALUES / REPS: the sweep matrix.
+AIRFLOW_BASE=apache/airflow:3.1.8 CHART_VERSION=1.20.0 \
+COSMOS_VERSIONS="1.13.1 1.14.2" THREADS_VALUES="4 8 16" REPS=5 \
+  ./provision.sh
+
+# 2. Watch progress (optional; Ctrl-C just disconnects, sweep keeps running).
+./monitor.sh
+
+# 3. Once the sweep prints "SWEEP DONE", pull the CSV + summary table into
+#    ../results/ (blocks on the SWEEP_DONE sentinel by default).
+./fetch-results.sh
+
+# 4. Delete the VM and its disk.
+./teardown.sh
+```
+
+For a quick pipeline smoke-test before committing to the 3-hr run, shrink
+the matrix to one cell: `THREADS_VALUES="8" REPS=1` (~30 min, ~$0.40).
+
+The summary table is generated by `post-process/summarise-metrics.py` and
+reports `mean ± sample-stdev` per `(cosmos version, threads)` cell for wall
+time, producer task duration, the sensor "tail", and per-pool CPU / memory
+— the three dimensions the comparison targets (execution time, CPU, memory).
+
+**Iterate faster:** image-level changes (Dockerfile, dependency pins) can be
+validated locally without a VM —
+`docker build --build-arg AIRFLOW_BASE=apache/airflow:3.1.8 --build-arg COSMOS_VERSION=1.13.1 -f benchmark/Dockerfile .`
+catches build/dependency failures in minutes. Only cluster-level behaviour
+(helm install, worker scheduling, the benchmark itself) needs the GCE VM.
+
+Results: Cosmos 1.13.1 vs 1.14.2 WATCHER (2026-06-01)
+=====================================================
+
+First remote (GCE) sweep, comparing `astronomer-cosmos` **1.13.1 vs 1.14.2**
+in WATCHER mode. Raw per-rep CSV is in the
+[team Google Sheet](https://docs.google.com/spreadsheets/d/10c6hMjwBJZ1DybiJT8o0TApVPyk-oPuJCY01bj2zC0A/edit?gid=0#gid=0)
+under the `2026-06-01 Benchmark 1.13.1 & 1.14.2 on Cloud VM` tab. Cells below
+are `mean ± sample-stdev (n=5)` from `post-process/summarise-metrics.py`.
+
+Cluster config (identical for every column):
+
+* GCE `n2-standard-16` (16 vCPU / 64 GiB), single-node `kind`, Prometheus
+  scrape 5s, boot disk pd-ssd
+* Apache Airflow **3.1.8** (Helm chart `1.20.0`) — *not* 3.2.x, because
+  Cosmos 1.13.1 has a circular import under Airflow 3.2 (see the
+  compatibility note above)
+* `dbt-bigquery==1.9`, dbt project `fhir-dbt-analytics` (~185 models / 188
+  nodes) with the `unioned_thresholds.sql` overlay, `protobuf>=6` pin
+* **Producer pool:** 1 × `cpu=1 / memory=2Gi`, `PRODUCER_CONCURRENCY=1`
+* **Consumer pool:** 9 × `cpu=1 / memory=2Gi` × `worker_concurrency=2`
+* Airflow `parallelism=16`, Cosmos `watcher_dbt_execution_queue=producer`
+* Only difference between the two halves: `astronomer-cosmos` 1.13.1 vs 1.14.2
+
+| Metric | 1.13.1 t=4 | 1.13.1 t=8 | 1.13.1 t=16 | 1.14.2 t=4 | 1.14.2 t=8 | 1.14.2 t=16 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Wall time (s) | 525 ± 24 | 523 ± 26 | 527 ± 13 | 415 ± 22 | 383 ± 18 | 394 ± 15 |
+| Tasks succeeded / total | min 187/188 (3/5 ✅) | min 187/188 (3/5 ✅) | min 187/188 (2/5 ✅) | 188/188 (5/5 ✅) | 188/188 (5/5 ✅) | 188/188 (5/5 ✅) |
+| Producer task duration (s) | 487 ± 70 | 494 ± 58 | 476 ± 56 | 379 ± 29 | 296 ± 4 | 290 ± 4 |
+| Tail (DAG − producer, s) | 38 ± 49 | 29 ± 38 | 51 ± 45 | 36 ± 20 | 87 ± 18 | 104 ± 13 |
+| Producer max CPU (cores) | 0.27 ± 0.03 | 0.26 ± 0.04 | 0.24 ± 0.02 | 0.80 ± 0.01 | 0.98 ± 0.00 | 0.99 ± 0.00 |
+| Producer total CPU (s) | 79 ± 3 | 80 ± 5 | 83 ± 3 | 271 ± 11 | 269 ± 3 | 269 ± 4 |
+| Producer peak mem (MiB) | 610 ± 118 | 770 ± 118 | 662 ± 144 | 939 ± 5 | 922 ± 40 | 903 ± 38 |
+| Consumer total CPU (s) | 3930 ± 28 | 3981 ± 157 | 4018 ± 84 | 3010 ± 143 | 2812 ± 137 | 2921 ± 120 |
+| Consumer peak mem (MiB) | 11349 ± 295 | 11681 ± 259 | 11832 ± 234 | 8832 ± 212 | 8846 ± 233 | 9047 ± 231 |
+| Total CPU (s) | 4009 ± 28 | 4061 ± 159 | 4101 ± 87 | 3280 ± 146 | 3082 ± 139 | 3191 ± 121 |
+| Total peak mem (MiB) | 11906 ± 296 | 12239 ± 259 | 12389 ± 234 | 9656 ± 211 | 9672 ± 270 | 9804 ± 256 |
+
+Take-aways
+----------
+
+* **At this scale (~185 models), 1.14.2 is ~21-27% faster, ~18-24% lower total
+  CPU, and ~19-21% lower peak memory than 1.13.1** at every thread count.
+
+* **1.14.2 parallelizes the producer `dbt build`; 1.13.1 does not.** 1.13.1's
+  producer is pinned at ~0.25 cores and ~485 s regardless of `threads` (4 / 8 /
+  16 all identical). 1.14.2's producer scales — 379 → 296 → 290 s, 0.80 → 0.98
+  → 0.99 cores — and dbt confirms `Concurrency: 4/8/16 threads` in its logs.
+  This producer improvement is the source of 1.14.2's win here.
+
+* **The WATCHER "tail" grows in 1.14.2 (36 → 87 → 104 s vs 1.13.1's ~29-51 s).**
+  This is the per-node XCom-push + Variable-backup overhead introduced in
+  1.14.x ([astronomer-cosmos#2736](https://github.com/astronomer/astronomer-cosmos/issues/2736)):
+  1.13.1 pushed one combined XCom at the end of the build, 1.14.x pushes one
+  XCom **per node** (plus a Variable backup) via the `NodeFinished` callback.
+  At 188 nodes on a fast single-node cluster the tail is tens of seconds and
+  the producer speedup dominates, so 1.14.2 nets faster.
+
+* **This does NOT contradict the >3× regression reported in #2736 — it's the
+  same mechanism at a different scale.** #2736 is 809 models / 3201 nodes on
+  self-hosted Kubernetes with etcd on HDD, where each XCom + Variable write
+  costs 150-400 ms and floods the API server with 500s. There the per-node
+  tail overhead (~16 min+) dwarfs the producer speedup and the DAG times out.
+  Our benchmark reproduces the *tail-growth trend* but is too small / too fast
+  to reproduce the catastrophic regression. **To reproduce #2736 here we'd need
+  a much larger dbt project (500-800+ models) and/or a slower / contended XCom
+  backend** — see "Reproducing #2736" below.
+
+* **Reliability:** 1.14.2 hit 188/188 on all 15 reps; 1.13.1 intermittently
+  dropped to 187/188 (one flaky `fhir-dbt-analytics` model). Worth checking
+  whether the submodule pin predates the upstream fix for that model.
+
+Reproducing #2736 (next step, not yet run)
+------------------------------------------
+
+The 2026-06-01 sweep shows 1.14.2 *winning* at ~185 models — the opposite of
+the production regression — because the per-node XCom tail hasn't yet overtaken
+the producer-parallelism gain. To surface the regression on this harness:
+
+* **Scale the dbt project up** to ~500-800+ models (the regression is roughly
+  linear in node count × per-write latency), and/or
+* **Slow the XCom/Variable backend** to mimic etcd-on-HDD (the benchmark uses
+  a local Postgres metadata DB on pd-ssd, ~1-2 orders of magnitude faster than
+  the #2736 infra), and/or
+* Watch the **tail** column specifically — it already trends the right way
+  (grows with both node count and threads); a larger project should make it
+  cross over and dominate wall time.
 
 Analysing performance
 ---------------------
