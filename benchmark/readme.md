@@ -457,9 +457,13 @@ Prerequisites on the laptop:
 
 * `gcloud` CLI authenticated (`gcloud auth login`), default project
   `astronomer-dag-authoring` — or override with `GCP_PROJECT`.
-* A valid `benchmark/pre-process/key.json` (the same BigQuery key the
-  local flow uses; uploaded to the VM via instance metadata, never
-  baked into a public image).
+* Keyless BigQuery auth — **no `key.json` needed for the remote sweep.** The VM
+  is created with a service account attached (`SA_EMAIL`) and dbt uses
+  Application Default Credentials off the GCE metadata server; nothing is
+  uploaded to instance metadata or baked into the image. The SA needs BigQuery
+  Job User + Data Viewer on the benchmark dataset, and the operator needs
+  `iam.serviceAccounts.actAs` on it. See `remote/readme.md` for the one-time
+  setup.
 
 Default sweep:
 

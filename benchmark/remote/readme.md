@@ -29,10 +29,39 @@ COSMOS_VERSIONS="1.13.1 1.14.0 1.14.2" ./provision.sh`). `monitor.sh`,
 `fetch-results.sh`, and `teardown.sh` all read the same `GCP_PROJECT`,
 `GCP_ZONE`, and `VM_NAME` — override them consistently.
 
+Keyless BigQuery auth
+---------------------
+
+The sweep authenticates to BigQuery **without a service-account JSON key**. The
+VM is created with a service account attached (`SA_EMAIL`, default
+`pankaj-singh@astronomer-dag-authoring.iam.gserviceaccount.com`) and the
+`bigquery` OAuth scope; dbt in the kind pods then uses Application Default
+Credentials off the GCE metadata server. No key is uploaded to instance
+metadata, written to disk, or baked into the image.
+
+What this needs (one-time, per service account):
+
+* The SA exists in the project with least-privilege BigQuery roles — Job User
+  on the project and Data Viewer on the benchmark dataset (`release_17`):
+
+  ```
+  gcloud iam service-accounts create cosmos-benchmark-bq \
+    --project=astronomer-dag-authoring --display-name="cosmos benchmark BQ"
+  gcloud projects add-iam-policy-binding astronomer-dag-authoring \
+    --member="serviceAccount:cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com" \
+    --role=roles/bigquery.jobUser
+  bq add-iam-policy-binding ... --role=roles/bigquery.dataViewer release_17
+  ```
+
+  (The default `SA_EMAIL` above reuses an existing SA; point `SA_EMAIL` at a
+  dedicated one like `cosmos-benchmark-bq@...` once it's provisioned.)
+* Whoever runs `provision.sh` has `iam.serviceAccounts.actAs` on that SA.
+
 Files in this directory:
 
-* `provision.sh` — laptop-side: creates the VM, uploads `key.json` via
-  instance metadata, kicks off the sweep via startup script.
+* `provision.sh` — laptop-side: creates the VM (with a service account
+  attached for keyless BigQuery auth — no JSON key uploaded), kicks off the
+  sweep via startup script.
 * `bootstrap.sh` — runs on the VM (root, as the startup script's payload):
   installs Docker / kind / kubectl / helm, then hands off to `run-sweep.sh`.
 * `run-sweep.sh` — on-VM driver: calls the existing `setup.sh` once, then

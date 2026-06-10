@@ -33,6 +33,17 @@ REPO_ROOT="/opt/cosmos-bench/cosmos-benchmark"
 RESULTS_DIR="/opt/cosmos-bench/results"
 SENTINEL="${RESULTS_DIR}/SWEEP_DONE"
 
+# Keyless BigQuery auth. The remote VM has a service account attached (see
+# provision.sh --service-account), so dbt authenticates via Application Default
+# Credentials off the GCE metadata server instead of a mounted JSON key. These
+# get baked into the image (Dockerfile ARGs) and flow into profiles.yml, and are
+# exported so the setup.sh build and the per-cosmos rebuild below stay in sync.
+#   DBT_BQ_METHOD=oauth        -> profiles.yml method
+#   GCE_METADATA_HOST=<ip>     -> pins the metadata server so google-auth in the
+#                                 kind pods doesn't depend on in-cluster DNS
+export DBT_BQ_METHOD="${DBT_BQ_METHOD:-oauth}"
+export GCE_METADATA_HOST="${GCE_METADATA_HOST:-169.254.169.254}"
+
 mkdir -p "$RESULTS_DIR"
 rm -f "$SENTINEL"
 TS="$(date +%Y%m%d-%H%M%S)"
@@ -86,6 +97,8 @@ for v in "${VERSIONS[@]}"; do
     docker build \
       --build-arg "COSMOS_VERSION=${v}" \
       --build-arg "AIRFLOW_BASE=${AIRFLOW_BASE}" \
+      --build-arg "DBT_BQ_METHOD=${DBT_BQ_METHOD}" \
+      --build-arg "GCE_METADATA_HOST=${GCE_METADATA_HOST}" \
       -t "benchmark:${TAG}" \
       -f benchmark/Dockerfile .
     popd
