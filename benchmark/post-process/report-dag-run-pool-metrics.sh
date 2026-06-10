@@ -30,11 +30,19 @@ PROM_API="http://localhost:9090/api/v1/query"
 NAMESPACE="${NAMESPACE:-airflow}"
 KUBE_CONTEXT="${KUBE_CONTEXT:-kind-kind}"
 
+# The Airflow 3 CLI interleaves INFO log lines (alembic plugin setup, etc.) into
+# the `--output json` payload on stdout, so feeding it straight to json.load
+# fails with "Extra data" (it parses a leading timestamp like 2026 as an int,
+# then trips on the rest). The JSON array is emitted as a single line, so keep
+# only the line that starts with `[` or `{`.
+json_only() { grep -E '^[[{]' | head -1; }
+
 # Discover the latest DAG run window from Airflow metadata.
 API_POD=$(kubectl --context "$KUBE_CONTEXT" get pods -n "$NAMESPACE" -l component=api-server -o jsonpath="{.items[0].metadata.name}")
 RUN_JSON=$(kubectl --context "$KUBE_CONTEXT" exec -n "$NAMESPACE" "$API_POD" -- \
   airflow dags list-runs "$DAG_NAME" --output json 2>/dev/null \
-  | python3 -c "import json,sys;data=json.load(sys.stdin);print(json.dumps(data[0]) if data else '{}')")
+  | json_only \
+  | python3 -c "import json,sys;raw=sys.stdin.read().strip();data=json.loads(raw) if raw else [];print(json.dumps(data[0]) if data else '{}')")
 
 START_DATE=$(echo "$RUN_JSON" | jq -r '.start_date // empty')
 END_DATE=$(echo "$RUN_JSON" | jq -r '.end_date // empty')
@@ -59,7 +67,8 @@ DURATION=$(( END_EPOCH - START_EPOCH ))
 # Per-task state list — used for both producer task duration (WATCHER only)
 # and total/success task counts (a sanity-check that the run wasn't partial).
 TASK_STATES_JSON=$(kubectl --context "$KUBE_CONTEXT" exec -n "$NAMESPACE" "$API_POD" -- \
-  airflow tasks states-for-dag-run "$DAG_NAME" "$RUN_ID" --output json 2>/dev/null)
+  airflow tasks states-for-dag-run "$DAG_NAME" "$RUN_ID" --output json 2>/dev/null \
+  | json_only)
 
 PRODUCER_TASK_JSON=$(echo "$TASK_STATES_JSON" | python3 -c "import json,sys;data=json.loads(sys.stdin.read() or '[]');print(json.dumps(next((t for t in data if t.get('task_id') == 'dbt_producer_watcher'), {})))")
 PRODUCER_START=$(echo "$PRODUCER_TASK_JSON" | jq -r '.start_date // empty')
