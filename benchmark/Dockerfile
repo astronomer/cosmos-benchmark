@@ -13,6 +13,16 @@ FROM ${AIRFLOW_BASE}
 # `docker build --build-arg COSMOS_VERSION=...`.
 ARG COSMOS_VERSION=1.14.2
 
+# BigQuery auth method, threaded through to dbt's profiles.yml via DBT_BQ_METHOD.
+# Default `service-account` keeps the local key-based flow. The keyless remote
+# sweep (benchmark/remote) builds with DBT_BQ_METHOD=oauth so dbt uses the VM's
+# attached service account via Application Default Credentials — no key file.
+# GCE_METADATA_HOST pins the metadata server's IP so the google-auth library in
+# the kind pods doesn't depend on in-cluster DNS resolving metadata.google.internal;
+# left empty for the local flow (unused there, since method=service-account).
+ARG DBT_BQ_METHOD=service-account
+ARG GCE_METADATA_HOST=
+
 USER root
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -28,6 +38,8 @@ ENV AIRFLOW__COSMOS__CACHE_DIR=/tmp/
 ENV AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT=20000
 ENV AIRFLOW__CORE__DAG_FILE_PROCESSOR_TIMEOUT=20000
 ENV KEY_PATH=/opt/airflow/key.json
+ENV DBT_BQ_METHOD=${DBT_BQ_METHOD}
+ENV GCE_METADATA_HOST=${GCE_METADATA_HOST}
 
 
 # dbt-bigquery + astronomer-cosmos on top of the official airflow image.
@@ -52,7 +64,20 @@ WORKDIR /opt/airflow
 # the project path as Path(__file__).parent.parent (i.e. /opt/airflow/dags → /opt/airflow).
 COPY --chown=airflow:0 dbt/fhir-dbt-analytics /opt/airflow
 COPY --chown=airflow:0 benchmark/pre-process/profiles.yml /opt/airflow/profiles.yml
-COPY --chown=airflow:0 benchmark/pre-process/key.json /opt/airflow/key.json
+
+# Bake the BigQuery SA key into the image ONLY when it's present in the build
+# context (local / key-based flow). The keyless remote sweep clones the repo
+# fresh on the VM where key.json is gitignored and never written, so the file is
+# absent there — copy the whole pre-process dir and conditionally place the key
+# so the build succeeds either way without a hard `COPY key.json` that would
+# fail when the file doesn't exist.
+COPY --chown=airflow:0 benchmark/pre-process/ /tmp/pre-process/
+RUN if [ -f /tmp/pre-process/key.json ]; then \
+      cp /tmp/pre-process/key.json /opt/airflow/key.json && \
+      chmod 600 /opt/airflow/key.json ; \
+    else \
+      echo "No key.json in build context — keyless (ADC) auth expected." ; \
+    fi && rm -rf /tmp/pre-process
 
 # Overlay benchmark-local patches to upstream dbt project files. Each patch
 # replaces a single upstream file to fix issues that cause flaky benchmark

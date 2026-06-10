@@ -12,17 +12,27 @@
 # Once the VM is up, use monitor.sh to follow progress, fetch-results.sh to
 # pull the CSV when the sweep finishes, and teardown.sh to delete the VM.
 #
+# BigQuery auth is keyless: the VM is created with a service account attached
+# (SA_EMAIL) and dbt authenticates via Application Default Credentials off the
+# GCE metadata server. No JSON key is uploaded, written to disk, or baked into
+# the image. The SA needs BigQuery Job User + Data Viewer on the benchmark
+# dataset, and whoever runs this script needs iam.serviceAccounts.actAs on it.
+#
 # All knobs are env-vars with sensible defaults — see README.md.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-KEY_FILE="${REPO_ROOT}/benchmark/pre-process/key.json"
 
 # --- Config (override via env) -----------------------------------------------
 GCP_PROJECT="${GCP_PROJECT:-astronomer-dag-authoring}"
 GCP_ZONE="${GCP_ZONE:-us-central1-a}"
+
+# Service account the VM runs as — the source of the keyless BigQuery auth.
+# Must already exist in $GCP_PROJECT with BigQuery Job User + Data Viewer on the
+# benchmark dataset. Defaults to the existing benchmark SA.
+SA_EMAIL="${SA_EMAIL:-pankaj-singh@astronomer-dag-authoring.iam.gserviceaccount.com}"
 VM_NAME="${VM_NAME:-cosmos-bench}"
 MACHINE_TYPE="${MACHINE_TYPE:-n2-standard-16}"
 DISK_SIZE_GB="${DISK_SIZE_GB:-100}"
@@ -57,13 +67,6 @@ if ! command -v gcloud >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ ! -s "$KEY_FILE" ]; then
-  echo "ERROR: $KEY_FILE is missing or empty." >&2
-  echo "       Place a BigQuery service-account JSON key for project" >&2
-  echo "       'astronomer-dag-authoring' at that path and re-run." >&2
-  exit 1
-fi
-
 ACTIVE_ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format='value(account)' 2>/dev/null || true)
 if [ -z "$ACTIVE_ACCOUNT" ]; then
   echo "ERROR: no active gcloud account. Run 'gcloud auth login' first." >&2
@@ -71,9 +74,10 @@ if [ -z "$ACTIVE_ACCOUNT" ]; then
 fi
 
 # --- Build the inline startup script -----------------------------------------
-# Kept deliberately small: clone the repo (with submodules), drop the BigQuery
-# key into place, then hand off to bootstrap.sh in the repo. All sweep logic
-# lives in version-controlled files, not in the VM's instance metadata.
+# Kept deliberately small: clone the repo (with submodules), then hand off to
+# bootstrap.sh in the repo. No BigQuery key is fetched or written — auth is
+# keyless via the VM's attached service account. All sweep logic lives in
+# version-controlled files, not in the VM's instance metadata.
 STARTUP_SCRIPT=$(cat <<'STARTUP_EOF'
 #!/usr/bin/env bash
 set -euxo pipefail
@@ -104,10 +108,6 @@ if [ ! -d cosmos-benchmark/.git ]; then
   git clone --recurse-submodules --branch "${REPO_BRANCH}" "${REPO_URL}" cosmos-benchmark
 fi
 
-# Drop the BigQuery key into the repo where the existing Dockerfile expects it.
-fetch bigquery-key-json > cosmos-benchmark/benchmark/pre-process/key.json
-chmod 600 cosmos-benchmark/benchmark/pre-process/key.json
-
 # Hand off to the in-repo bootstrap. Exporting the sweep config so bootstrap.sh
 # and run-sweep.sh can pick it up without re-reading metadata.
 export COSMOS_VERSIONS THREADS_VALUES REPS AIRFLOW_BASE CHART_VERSION
@@ -119,7 +119,6 @@ STARTUP_EOF
 STAGE_DIR=$(mktemp -d)
 trap 'rm -rf "$STAGE_DIR"' EXIT
 printf '%s' "$STARTUP_SCRIPT" > "${STAGE_DIR}/startup-script"
-cp "$KEY_FILE" "${STAGE_DIR}/bigquery-key-json"
 printf '%s' "$REPO_URL"        > "${STAGE_DIR}/repo-url"
 printf '%s' "$REPO_BRANCH"     > "${STAGE_DIR}/repo-branch"
 printf '%s' "$COSMOS_VERSIONS" > "${STAGE_DIR}/cosmos-versions"
@@ -152,6 +151,7 @@ About to create GCE VM with this config:
   disk:             ${DISK_SIZE_GB} GiB pd-ssd
   image:            $IMAGE_FAMILY ($IMAGE_PROJECT)
   account:          $ACTIVE_ACCOUNT
+  vm service acct:  $SA_EMAIL   (keyless BigQuery auth)
 
 Sweep matrix (written into the VM via instance metadata):
 
@@ -177,10 +177,11 @@ if gcloud --project="$GCP_PROJECT" compute instances describe "$VM_NAME" \
   exit 1
 fi
 
-# Minimal OAuth scopes: the only thing on the VM that talks to a Google API
-# via the instance service account is the Ops Agent (logging + monitoring).
-# BigQuery access goes through the mounted key.json, not the VM's SA, so we
-# deliberately avoid the broad cloud-platform scope.
+# Attach the benchmark service account and grant the OAuth scopes the VM needs:
+#   - bigquery: keyless BigQuery auth — dbt in the kind pods uses ADC off the
+#     metadata server as $SA_EMAIL (least-privilege enforced via that SA's IAM
+#     roles, not via a broad cloud-platform scope).
+#   - logging-write,monitoring-write: the Ops Agent's metrics + logs.
 gcloud --project="$GCP_PROJECT" compute instances create "$VM_NAME" \
   --zone="$GCP_ZONE" \
   --machine-type="$MACHINE_TYPE" \
@@ -188,10 +189,10 @@ gcloud --project="$GCP_PROJECT" compute instances create "$VM_NAME" \
   --image-project="$IMAGE_PROJECT" \
   --boot-disk-size="${DISK_SIZE_GB}GB" \
   --boot-disk-type=pd-ssd \
-  --scopes=logging-write,monitoring-write \
+  --service-account="$SA_EMAIL" \
+  --scopes=bigquery,logging-write,monitoring-write \
   --metadata-from-file=\
 "startup-script=${STAGE_DIR}/startup-script,"\
-"bigquery-key-json=${STAGE_DIR}/bigquery-key-json,"\
 "repo-url=${STAGE_DIR}/repo-url,"\
 "repo-branch=${STAGE_DIR}/repo-branch,"\
 "cosmos-versions=${STAGE_DIR}/cosmos-versions,"\

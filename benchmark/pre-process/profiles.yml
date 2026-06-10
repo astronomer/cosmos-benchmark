@@ -3,7 +3,13 @@ fhir_dbt_analytics:
   outputs:
     dev:
       type: bigquery
-      method: service-account
+      # Auth method is env-driven so the same image works two ways:
+      #   - local / key-based (default): method=service-account reads `keyfile`
+      #   - keyless remote (benchmark/remote): DBT_BQ_METHOD=oauth uses the VM's
+      #     attached service account via Application Default Credentials (the GCE
+      #     metadata server), so no JSON key is baked in or mounted.
+      # `keyfile` is ignored by dbt when method=oauth, so leaving it set is safe.
+      method: "{{ env_var('DBT_BQ_METHOD', 'service-account') }}"
       project: astronomer-dag-authoring
       dataset: release_17 # You can also use "schema" here
       threads: 4 # Must be a value of 1 or greater
