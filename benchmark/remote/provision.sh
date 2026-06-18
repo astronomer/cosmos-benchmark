@@ -16,8 +16,9 @@
 # BigQuery auth is keyless: the VM is created with a service account attached
 # (SA_EMAIL) and dbt authenticates via Application Default Credentials off the
 # GCE metadata server. No JSON key is uploaded, written to disk, or baked into
-# the image. The SA needs BigQuery Job User + Data Viewer on the benchmark
-# dataset, and whoever runs this script needs iam.serviceAccounts.actAs on it.
+# the image. The SA needs BigQuery Job User + Data Editor on the benchmark
+# dataset (dbt build recreates tables, so read-only isn't enough), and whoever
+# runs this script needs iam.serviceAccounts.actAs on it.
 #
 # All knobs are env-vars with sensible defaults — see README.md.
 
@@ -31,7 +32,7 @@ GCP_PROJECT="${GCP_PROJECT:-astronomer-dag-authoring}"
 GCP_ZONE="${GCP_ZONE:-us-central1-a}"
 
 # Service account the VM runs as — the source of the keyless BigQuery auth.
-# Must already exist in $GCP_PROJECT with BigQuery Job User + Data Viewer on the
+# Must already exist in $GCP_PROJECT with BigQuery Job User + Data Editor on the
 # benchmark dataset (see remote/readme.md for the one-time setup). Defaults to a
 # dedicated benchmark SA in the active project, so the default stays valid when
 # $GCP_PROJECT is overridden.

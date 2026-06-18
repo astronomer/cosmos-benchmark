@@ -43,7 +43,11 @@ metadata, written to disk, or baked into the image.
 What this needs (one-time, per service account):
 
 * The SA exists in the project with least-privilege BigQuery roles — Job User
-  on the project and Data Viewer on the benchmark dataset (`release_17`):
+  on the project and **Data Editor** on the benchmark dataset (`release_17`).
+  Data Editor (not just Data Viewer) is required because the benchmark runs
+  `dbt build`, which recreates the project's seeds/tables in the dataset
+  (`bigquery.tables.create` / `.delete`); read-only access fails with
+  `403 ... Permission bigquery.tables.create denied`.
 
   ```
   gcloud iam service-accounts create cosmos-benchmark-bq \
@@ -53,8 +57,19 @@ What this needs (one-time, per service account):
     --role=roles/bigquery.jobUser
   bq add-iam-policy-binding \
     --member="serviceAccount:cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com" \
-    --role=roles/bigquery.dataViewer \
+    --role=roles/bigquery.dataEditor \
     astronomer-dag-authoring:release_17
+  ```
+
+  If `bq add-iam-policy-binding` reports `This feature requires allowlisting`
+  (fine-grained dataset IAM isn't enabled on the project), grant the equivalent
+  via a dataset ACL instead — `WRITER` is the ACL role that maps to Data Editor:
+
+  ```
+  bq show --format=prettyjson astronomer-dag-authoring:release_17 > ds.json
+  # add {"role": "WRITER", "userByEmail": "cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com"}
+  # to the "access" array, then:
+  bq update --source ds.json astronomer-dag-authoring:release_17
   ```
 
   `cosmos-benchmark-bq@...` is the default `SA_EMAIL`; override it only if you

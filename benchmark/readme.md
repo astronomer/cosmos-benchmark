@@ -461,9 +461,9 @@ Prerequisites on the laptop:
   is created with a service account attached (`SA_EMAIL`) and dbt uses
   Application Default Credentials off the GCE metadata server; nothing is
   uploaded to instance metadata or baked into the image. The SA needs BigQuery
-  Job User + Data Viewer on the benchmark dataset, and the operator needs
-  `iam.serviceAccounts.actAs` on it. See `remote/readme.md` for the one-time
-  setup.
+  Job User + Data Editor on the benchmark dataset (dbt build recreates tables,
+  so read-only isn't enough), and the operator needs `iam.serviceAccounts.actAs`
+  on it. See `remote/readme.md` for the one-time setup.
 
 Default sweep:
 
