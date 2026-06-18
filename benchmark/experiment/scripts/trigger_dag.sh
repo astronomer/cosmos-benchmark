@@ -12,15 +12,30 @@ DAG_NAME="${DAG_NAME:-example_operator_build}"
 MAX_WAIT_SECONDS="${MAX_WAIT_SECONDS:-3600}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-5}"
 
+# The Airflow 3 CLI interleaves INFO log lines with the `--output json` payload
+# on stdout. The payload is a single-line JSON array, so isolate it by matching
+# a `[` followed by `{` or `]` — NOT a plain `^\[`, which also catches log lines
+# like `[2026-...]` and would feed jq a log line (failing the script under
+# `set -e`). Callers also capture output into a variable before parsing, so jq
+# can't close airflow's stdout early (BrokenPipeError, exit 4).
+json_line() { grep -E '^\[[[:space:]]*[]{]' | tail -1; }
+
 # Airflow 3 CLI exposes the field as `run_id`; older CLIs used `dag_run_id`.
-RUN_ID=$(airflow dags trigger $DAG_NAME --output json | tail -1 | jq '.[0].run_id // .[0].dag_run_id')
+TRIGGER_OUT=$(airflow dags trigger "$DAG_NAME" --output json)
+RUN_ID=$(printf '%s\n' "$TRIGGER_OUT" | json_line | jq -r '.[0].run_id // .[0].dag_run_id // empty')
+if [ -z "$RUN_ID" ]; then
+    echo "ERROR: could not parse a run_id from 'airflow dags trigger $DAG_NAME'. Raw output:" >&2
+    printf '%s\n' "$TRIGGER_OUT" >&2
+    exit 1
+fi
 
 start_time=$(date --iso-8601=seconds)
 elapsed=0
 
 while [ "$elapsed" -lt "$MAX_WAIT_SECONDS" ]; do
-    STATUS=$(airflow dags list-runs $DAG_NAME --output json | jq ".[] | select(.run_id == $RUN_ID) | .state")
-    echo $STATUS
+    RUNS_OUT=$(airflow dags list-runs "$DAG_NAME" --output json)
+    STATUS=$(printf '%s\n' "$RUNS_OUT" | json_line | jq -r --arg rid "$RUN_ID" '.[] | select(.run_id == $rid) | .state')
+    echo "$STATUS"
 
     if [[ $STATUS =~ "success" ]]; then
         echo "DAG run $RUN_ID succeeded"

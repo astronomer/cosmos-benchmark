@@ -6,15 +6,20 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KEY_FILE="$SCRIPT_DIR/pre-process/key.json"
 
-# Fail fast if the GCP service account key is missing or no longer valid,
-# rather than discovering it deep inside a benchmark run.
-if [ ! -s "$KEY_FILE" ]; then
-  echo "ERROR: $KEY_FILE is missing or empty."
-  echo "Download a fresh service account JSON key from GCP project 'astronomer-dag-authoring' and save it to that path."
-  exit 1
-fi
+# Keyless (ADC) flow: the VM authenticates to BigQuery via its attached service
+# account, so there's no key file to validate. Skip the preflight entirely.
+if [ "${DBT_BQ_METHOD:-service-account}" = "oauth" ]; then
+  echo "DBT_BQ_METHOD=oauth — keyless BigQuery auth, skipping key.json preflight."
+else
+  # Fail fast if the GCP service account key is missing or no longer valid,
+  # rather than discovering it deep inside a benchmark run.
+  if [ ! -s "$KEY_FILE" ]; then
+    echo "ERROR: $KEY_FILE is missing or empty."
+    echo "Download a fresh service account JSON key from GCP project 'astronomer-dag-authoring' and save it to that path."
+    exit 1
+  fi
 
-python3 - "$KEY_FILE" <<'PY' || exit 1
+  python3 - "$KEY_FILE" <<'PY' || exit 1
 import sys
 key_path = sys.argv[1]
 try:
@@ -37,6 +42,7 @@ except Exception as e:
     sys.exit(1)
 print(f"OK: {key_path} successfully obtained a GCP access token.")
 PY
+fi
 
 # Pin every kubectl/helm call below to the kind cluster's context so reruns
 # can't accidentally target whatever cluster the user's current kube-context
@@ -146,6 +152,14 @@ if [ -n "${COSMOS_VERSION:-}" ]; then
 fi
 if [ -n "${AIRFLOW_BASE:-}" ]; then
   BUILD_ARGS+=(--build-arg "AIRFLOW_BASE=${AIRFLOW_BASE}")
+fi
+# Keyless BigQuery auth (remote sweep): bake method=oauth + the metadata-server
+# IP into the image so dbt in the kind pods uses the VM's attached SA via ADC.
+if [ -n "${DBT_BQ_METHOD:-}" ]; then
+  BUILD_ARGS+=(--build-arg "DBT_BQ_METHOD=${DBT_BQ_METHOD}")
+fi
+if [ -n "${GCE_METADATA_HOST:-}" ]; then
+  BUILD_ARGS+=(--build-arg "GCE_METADATA_HOST=${GCE_METADATA_HOST}")
 fi
 cd ..; docker build "${BUILD_ARGS[@]}" -t "benchmark:${IMAGE_TAG}" -f benchmark/Dockerfile .
 kind load --name "${KIND_CLUSTER}" docker-image "benchmark:${IMAGE_TAG}"

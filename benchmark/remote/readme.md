@@ -29,10 +29,58 @@ COSMOS_VERSIONS="1.13.1 1.14.0 1.14.2" ./provision.sh`). `monitor.sh`,
 `fetch-results.sh`, and `teardown.sh` all read the same `GCP_PROJECT`,
 `GCP_ZONE`, and `VM_NAME` — override them consistently.
 
+Keyless BigQuery auth
+---------------------
+
+The sweep authenticates to BigQuery **without a service-account JSON key**. The
+VM is created with a service account attached (`SA_EMAIL`, default
+`cosmos-benchmark-bq@<GCP_PROJECT>.iam.gserviceaccount.com` — a dedicated SA in
+the active project) and the
+`bigquery` OAuth scope; dbt in the kind pods then uses Application Default
+Credentials off the GCE metadata server. No key is uploaded to instance
+metadata, written to disk, or baked into the image.
+
+What this needs (one-time, per service account):
+
+* The SA exists in the project with least-privilege BigQuery roles — Job User
+  on the project and **Data Editor** on the benchmark dataset (`release_17`).
+  Data Editor (not just Data Viewer) is required because the benchmark runs
+  `dbt build`, which recreates the project's seeds/tables in the dataset
+  (`bigquery.tables.create` / `.delete`); read-only access fails with
+  `403 ... Permission bigquery.tables.create denied`.
+
+  ```
+  gcloud iam service-accounts create cosmos-benchmark-bq \
+    --project=astronomer-dag-authoring --display-name="cosmos benchmark BQ"
+  gcloud projects add-iam-policy-binding astronomer-dag-authoring \
+    --member="serviceAccount:cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com" \
+    --role=roles/bigquery.jobUser
+  bq add-iam-policy-binding \
+    --member="serviceAccount:cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com" \
+    --role=roles/bigquery.dataEditor \
+    astronomer-dag-authoring:release_17
+  ```
+
+  If `bq add-iam-policy-binding` reports `This feature requires allowlisting`
+  (fine-grained dataset IAM isn't enabled on the project), grant the equivalent
+  via a dataset ACL instead — `WRITER` is the ACL role that maps to Data Editor:
+
+  ```
+  bq show --format=prettyjson astronomer-dag-authoring:release_17 > ds.json
+  # add {"role": "WRITER", "userByEmail": "cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com"}
+  # to the "access" array, then:
+  bq update --source ds.json astronomer-dag-authoring:release_17
+  ```
+
+  `cosmos-benchmark-bq@...` is the default `SA_EMAIL`; override it only if you
+  run the sweep against a different dedicated SA.
+* Whoever runs `provision.sh` has `iam.serviceAccounts.actAs` on that SA.
+
 Files in this directory:
 
-* `provision.sh` — laptop-side: creates the VM, uploads `key.json` via
-  instance metadata, kicks off the sweep via startup script.
+* `provision.sh` — laptop-side: creates the VM (with a service account
+  attached for keyless BigQuery auth — no JSON key uploaded), kicks off the
+  sweep via startup script.
 * `bootstrap.sh` — runs on the VM (root, as the startup script's payload):
   installs Docker / kind / kubectl / helm, then hands off to `run-sweep.sh`.
 * `run-sweep.sh` — on-VM driver: calls the existing `setup.sh` once, then
