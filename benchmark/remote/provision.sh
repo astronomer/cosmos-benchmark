@@ -5,8 +5,9 @@
 # The VM does all real work in its startup script (bootstrap.sh + run-sweep.sh
 # from the repo), so this script's job is just to:
 #
-#   1. Sanity-check local prerequisites (gcloud, auth, key.json)
-#   2. Upload key.json + sweep config to the VM via instance metadata
+#   1. Sanity-check local prerequisites (gcloud, active auth)
+#   2. Upload sweep config to the VM via instance metadata (no key.json — auth
+#      is keyless via the attached service account; see below)
 #   3. Create the VM with the right startup script wired in
 #
 # Once the VM is up, use monitor.sh to follow progress, fetch-results.sh to
@@ -31,9 +32,10 @@ GCP_ZONE="${GCP_ZONE:-us-central1-a}"
 
 # Service account the VM runs as — the source of the keyless BigQuery auth.
 # Must already exist in $GCP_PROJECT with BigQuery Job User + Data Viewer on the
-# benchmark dataset (see remote/readme.md for the one-time setup). Defaults to
-# the dedicated benchmark SA.
-SA_EMAIL="${SA_EMAIL:-cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com}"
+# benchmark dataset (see remote/readme.md for the one-time setup). Defaults to a
+# dedicated benchmark SA in the active project, so the default stays valid when
+# $GCP_PROJECT is overridden.
+SA_EMAIL="${SA_EMAIL:-cosmos-benchmark-bq@${GCP_PROJECT}.iam.gserviceaccount.com}"
 VM_NAME="${VM_NAME:-cosmos-bench}"
 MACHINE_TYPE="${MACHINE_TYPE:-n2-standard-16}"
 DISK_SIZE_GB="${DISK_SIZE_GB:-100}"

@@ -34,7 +34,8 @@ Keyless BigQuery auth
 
 The sweep authenticates to BigQuery **without a service-account JSON key**. The
 VM is created with a service account attached (`SA_EMAIL`, default
-`cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com`) and the
+`cosmos-benchmark-bq@<GCP_PROJECT>.iam.gserviceaccount.com` — a dedicated SA in
+the active project) and the
 `bigquery` OAuth scope; dbt in the kind pods then uses Application Default
 Credentials off the GCE metadata server. No key is uploaded to instance
 metadata, written to disk, or baked into the image.

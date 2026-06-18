@@ -31,9 +31,11 @@ NAMESPACE="${NAMESPACE:-airflow}"
 KUBE_CONTEXT="${KUBE_CONTEXT:-kind-kind}"
 
 # The Airflow 3 CLI interleaves INFO log lines with the `--output json` payload
-# on stdout; fed straight to json.load it fails with "Extra data". The JSON is a
-# single line, so keep only the one starting with `[` or `{`.
-json_only() { grep -E '^[[{]' | head -1; }
+# on stdout; fed straight to json.load it fails with "Extra data". The payload
+# is a single-line JSON array/object, so match a leading `{`, `[{`, or `[]` —
+# NOT a plain `^[[{]`, which also catches log lines like `[2026-...]`. Keep the
+# last match, since the JSON is emitted after the log noise.
+json_only() { grep -E '^(\{|\[[[:space:]]*[]{])' | tail -1; }
 
 # Discover the latest DAG run window from Airflow metadata.
 API_POD=$(kubectl --context "$KUBE_CONTEXT" get pods -n "$NAMESPACE" -l component=api-server -o jsonpath="{.items[0].metadata.name}")

@@ -13,10 +13,12 @@ MAX_WAIT_SECONDS="${MAX_WAIT_SECONDS:-3600}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-5}"
 
 # The Airflow 3 CLI interleaves INFO log lines with the `--output json` payload
-# on stdout. Isolate the JSON array (single line) with `grep '^\['` so jq never
-# sees a log line. Callers also capture output into a variable before parsing,
-# so jq can't close airflow's stdout early (BrokenPipeError, exit 4).
-json_line() { grep -E '^\[' | tail -1; }
+# on stdout. The payload is a single-line JSON array, so isolate it by matching
+# a `[` followed by `{` or `]` — NOT a plain `^\[`, which also catches log lines
+# like `[2026-...]` and would feed jq a log line (failing the script under
+# `set -e`). Callers also capture output into a variable before parsing, so jq
+# can't close airflow's stdout early (BrokenPipeError, exit 4).
+json_line() { grep -E '^\[[[:space:]]*[]{]' | tail -1; }
 
 # Airflow 3 CLI exposes the field as `run_id`; older CLIs used `dag_run_id`.
 TRIGGER_OUT=$(airflow dags trigger "$DAG_NAME" --output json)
