@@ -21,32 +21,20 @@ for RUN_DAG_NAME in $DAGS; do
     echo -e "\n\n\n=== Run #$i for $RUN_DAG_NAME ==="
     echo Start time: $(date +"%Y-%m-%dT%H:%M:%S%z")
 
-    # Gate on a COMPLETE rollout (not just condition=Available) for every
-    # deployment we touch. During a rolling update a deployment reports
-    # Available as soon as minAvailable is met — while an old pod is still
-    # terminating. Grabbing that pod's name and exec-ing into it then races
-    # into a SIGKILL (exit 137) when the container shuts down mid-exec.
-    # `rollout status` blocks until the old ReplicaSet is fully scaled down, so
-    # the pod we select below is the live one. (api-server + scheduler are
-    # Airflow 3's control plane; the two worker pools run under CeleryExecutor.)
+    # Gate on a COMPLETE rollout, not just condition=Available: Available is
+    # reported while an old pod is still terminating, and exec-ing into that pod
+    # races into a SIGKILL (exit 137). `rollout status` waits for the old
+    # ReplicaSet to fully scale down, so the pod selected below is the live one.
     for deploy in airflow-api-server airflow-scheduler airflow-worker airflow-producer-worker ; do
       kubectl --context "$KUBE_CONTEXT" -n airflow rollout status deployment/$deploy --timeout=300s
     done
 
-    # Trigger the DAG from inside an api-server pod, re-resolving the pod name
-    # on each attempt (it changes across rollouts) and restricting to Running
-    # pods so we don't pick one that's still terminating.
-    #
-    # Retry ONLY when the exec itself is killed at the infra level (exit >128,
-    # e.g. 137/SIGKILL on a terminating pod) — that's a harness race, not a
-    # benchmark result. A clean non-zero exit from trigger_dag.sh (e.g. 1) means
-    # the DAG genuinely reached a failed/timeout state; we do NOT retry that, so
-    # a real flaky rep is still counted in FAILED_REPS rather than masked.
-    #
-    # The flaky-rep accounting itself: a single bad DAG run must NOT abort the
-    # whole sweep (that wastes hours of prior reps), so we capture the exit code
-    # instead of letting `set -e` kill the loop, log it, skip its metrics (a
-    # failed run's numbers aren't comparable), and continue to the next rep.
+    # Trigger the DAG from a Running api-server pod, re-resolved each attempt
+    # (the pod changes across rollouts). Retry ONLY on an infra-level kill
+    # (exit >128, e.g. 137/SIGKILL on a terminating pod) — a clean non-zero exit
+    # is a genuine DAG failure and is counted in FAILED_REPS, not retried.
+    # Capturing the exit code (vs. letting `set -e` abort) keeps one bad rep
+    # from killing the whole sweep; we log it, skip its metrics, and continue.
     trigger_rc=1
     for attempt in 1 2 3 ; do
       API_POD=$(kubectl --context "$KUBE_CONTEXT" -n airflow get pods \

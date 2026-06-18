@@ -30,11 +30,9 @@ PROM_API="http://localhost:9090/api/v1/query"
 NAMESPACE="${NAMESPACE:-airflow}"
 KUBE_CONTEXT="${KUBE_CONTEXT:-kind-kind}"
 
-# The Airflow 3 CLI interleaves INFO log lines (alembic plugin setup, etc.) into
-# the `--output json` payload on stdout, so feeding it straight to json.load
-# fails with "Extra data" (it parses a leading timestamp like 2026 as an int,
-# then trips on the rest). The JSON array is emitted as a single line, so keep
-# only the line that starts with `[` or `{`.
+# The Airflow 3 CLI interleaves INFO log lines with the `--output json` payload
+# on stdout; fed straight to json.load it fails with "Extra data". The JSON is a
+# single line, so keep only the one starting with `[` or `{`.
 json_only() { grep -E '^[[{]' | head -1; }
 
 # Discover the latest DAG run window from Airflow metadata.

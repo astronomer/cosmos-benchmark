@@ -12,14 +12,10 @@ DAG_NAME="${DAG_NAME:-example_operator_build}"
 MAX_WAIT_SECONDS="${MAX_WAIT_SECONDS:-3600}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-5}"
 
-# The Airflow 3 CLI interleaves INFO log lines (alembic plugin setup, etc.) with
-# the `--output json` payload on stdout, and the JSON array is emitted as a
-# single line. Two robustness measures everywhere we read JSON:
-#   1. Capture the full output into a variable BEFORE parsing. Piping straight
-#      into `tail|jq` lets the downstream close airflow's stdout early, which
-#      makes airflow die with BrokenPipeError (exit 4) — a false failure.
-#   2. Isolate the JSON with `grep '^\['` rather than `tail -1`, so jq never
-#      sees a trailing log line ("Invalid numeric literal" parse errors).
+# The Airflow 3 CLI interleaves INFO log lines with the `--output json` payload
+# on stdout. Isolate the JSON array (single line) with `grep '^\['` so jq never
+# sees a log line. Callers also capture output into a variable before parsing,
+# so jq can't close airflow's stdout early (BrokenPipeError, exit 4).
 json_line() { grep -E '^\[' | tail -1; }
 
 # Airflow 3 CLI exposes the field as `run_id`; older CLIs used `dag_run_id`.
