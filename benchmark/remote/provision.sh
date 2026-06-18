@@ -31,8 +31,9 @@ GCP_ZONE="${GCP_ZONE:-us-central1-a}"
 
 # Service account the VM runs as — the source of the keyless BigQuery auth.
 # Must already exist in $GCP_PROJECT with BigQuery Job User + Data Viewer on the
-# benchmark dataset. Defaults to the existing benchmark SA.
-SA_EMAIL="${SA_EMAIL:-pankaj-singh@astronomer-dag-authoring.iam.gserviceaccount.com}"
+# benchmark dataset (see remote/readme.md for the one-time setup). Defaults to
+# the dedicated benchmark SA.
+SA_EMAIL="${SA_EMAIL:-cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com}"
 VM_NAME="${VM_NAME:-cosmos-bench}"
 MACHINE_TYPE="${MACHINE_TYPE:-n2-standard-16}"
 DISK_SIZE_GB="${DISK_SIZE_GB:-100}"

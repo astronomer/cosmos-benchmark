@@ -34,7 +34,7 @@ Keyless BigQuery auth
 
 The sweep authenticates to BigQuery **without a service-account JSON key**. The
 VM is created with a service account attached (`SA_EMAIL`, default
-`pankaj-singh@astronomer-dag-authoring.iam.gserviceaccount.com`) and the
+`cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com`) and the
 `bigquery` OAuth scope; dbt in the kind pods then uses Application Default
 Credentials off the GCE metadata server. No key is uploaded to instance
 metadata, written to disk, or baked into the image.
@@ -50,11 +50,14 @@ What this needs (one-time, per service account):
   gcloud projects add-iam-policy-binding astronomer-dag-authoring \
     --member="serviceAccount:cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com" \
     --role=roles/bigquery.jobUser
-  bq add-iam-policy-binding ... --role=roles/bigquery.dataViewer release_17
+  bq add-iam-policy-binding \
+    --member="serviceAccount:cosmos-benchmark-bq@astronomer-dag-authoring.iam.gserviceaccount.com" \
+    --role=roles/bigquery.dataViewer \
+    astronomer-dag-authoring:release_17
   ```
 
-  (The default `SA_EMAIL` above reuses an existing SA; point `SA_EMAIL` at a
-  dedicated one like `cosmos-benchmark-bq@...` once it's provisioned.)
+  `cosmos-benchmark-bq@...` is the default `SA_EMAIL`; override it only if you
+  run the sweep against a different dedicated SA.
 * Whoever runs `provision.sh` has `iam.serviceAccounts.actAs` on that SA.
 
 Files in this directory:

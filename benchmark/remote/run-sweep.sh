@@ -40,7 +40,10 @@ SENTINEL="${RESULTS_DIR}/SWEEP_DONE"
 # exported so the setup.sh build and the per-cosmos rebuild below stay in sync.
 #   DBT_BQ_METHOD=oauth        -> profiles.yml method
 #   GCE_METADATA_HOST=<ip>     -> pins the metadata server so google-auth in the
-#                                 kind pods doesn't depend on in-cluster DNS
+#                                 kind pods doesn't depend on in-cluster DNS.
+#                                 169.254.169.254 is GCE's fixed link-local
+#                                 metadata-server address (same on every GCE VM,
+#                                 aka metadata.google.internal) — not arbitrary.
 export DBT_BQ_METHOD="${DBT_BQ_METHOD:-oauth}"
 export GCE_METADATA_HOST="${GCE_METADATA_HOST:-169.254.169.254}"
 
