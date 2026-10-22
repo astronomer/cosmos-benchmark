@@ -7,7 +7,7 @@ rows = [json.loads(line) for line in open(sys.argv[1]) if line.strip()]
 groups = defaultdict(list)
 for row in rows:
     groups[(row["nodes"], row["layout"])].append(row)
-order = {"none": 0, "variable": 0.5, "grouped": 1, "rows20": 2, "rows8kb": 3, "rows16kb": 4, "rows32kb": 5, "rows48kb": 6, "rows64kb": 7, "perkey": 8}
+order = {"none": 0, "variable": 0.5, "grouped": 1, "rows20": 2, "rows8kb": 3, "rows16kb": 4, "rows32kb": 5, "rows48kb": 6, "rows63kb": 7, "rows64kb": 7.5, "perkey": 8}
 
 
 def stat(samples, key, digits=1):

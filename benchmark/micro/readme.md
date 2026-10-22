@@ -32,4 +32,5 @@ for nodes in 100 500 1000; do
   done
 done
 python3 summarise_layouts.py results.jsonl   # mean +/- stdev per layout and size
+python3 keysize_table.py results.jsonl       # the rows<N>kb samples as a key size table
 ```
