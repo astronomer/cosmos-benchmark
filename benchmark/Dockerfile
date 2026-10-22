@@ -124,9 +124,14 @@ RUN cd /opt/airflow/altered_jaffle_shop \
       for i in $(seq 1 "${GENERATED_COPIES}"); do cp -n "$file" "${file%.sql}${i}.sql"; done; \
     done \
  && printf 'model_name,array_x,array_y\ncustomers_slow_query,5,5\nlong_model_cross_random,5,5\nlong_model_text_processing,5,5\nlong_model_subquery_windows,5,1\n' > seeds/model_params.csv \
- && printf '\non-run-end:\n  - "select 1/0 as fail_after_all_models"\n' >> dbt_project.yml \
+ && printf '\non-run-end:\n  - \"{%% if flags.WHICH == 'build' %%}select 1/0 as fail_after_all_models{%% else %%}select 1 as consumer_fallback_noop{%% endif %%}\"\n' >> dbt_project.yml \
  && dbt parse --no-use-colors --profiles-dir . --project-dir . --target-path target
-RUN printf '\non-run-end:\n  - "select 1/0 as fail_after_all_models"\n' >> /opt/airflow/dbt_project.yml \
+# Each VM runs one Cosmos ref against its own BigQuery datasets, so concurrent sweeps do not race on seeds and models.
+RUN DATASET_SUFFIX=$(printf '%s' "${COSMOS_VERSION}" | tr -c 'a-zA-Z0-9\n' '_') \
+ && sed -i -E "s/^([[:space:]]*dataset:).*/\\1 bench_${DATASET_SUFFIX}_fhir/" /opt/airflow/profiles.yml \
+ && sed -i -E "s/^([[:space:]]*dataset:).*/\\1 bench_${DATASET_SUFFIX}_generated/" /opt/airflow/altered_jaffle_shop/profiles.yml \
+ && grep -n "dataset:" /opt/airflow/profiles.yml /opt/airflow/altered_jaffle_shop/profiles.yml \
+ && printf '\non-run-end:\n  - \"{%% if flags.WHICH == 'build' %%}select 1/0 as fail_after_all_models{%% else %%}select 1 as consumer_fallback_noop{%% endif %%}\"\n' >> /opt/airflow/dbt_project.yml \
  && dbt parse --no-use-colors --profiles-dir /opt/airflow --project-dir /opt/airflow --target-path /opt/airflow/target
 
 # DAGs for both Job-based experiments and chart-based pods.
