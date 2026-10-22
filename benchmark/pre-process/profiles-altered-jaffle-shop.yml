@@ -1,0 +1,12 @@
+altered_jaffle_shop:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: astronomer-dag-authoring
+      dataset: cosmos_xcom_backup_bench
+      threads: 4
+      keyfile: "{{ env_var('KEY_PATH', '/app/key.json') }}"
+      job_execution_timeout_seconds: 300
+      job_retries: 1

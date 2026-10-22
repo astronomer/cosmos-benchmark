@@ -12,6 +12,8 @@ FROM ${AIRFLOW_BASE}
 # `setup.sh` keeps the default; remote `run-sweep.sh` overrides via
 # `docker build --build-arg COSMOS_VERSION=...`.
 ARG COSMOS_VERSION=1.14.2
+# Copies of each slow altered_jaffle_shop model for the generated watcher project (benchmark/dags/bench_backup_dags.py).
+ARG GENERATED_COPIES=250
 
 # BigQuery auth method, threaded through to dbt's profiles.yml via DBT_BQ_METHOD.
 # Default `service-account` keeps the local key-based flow. The keyless remote
@@ -55,7 +57,10 @@ ENV GCE_METADATA_HOST=${GCE_METADATA_HOST}
 # version-aware Dockerfile.
 COPY benchmark/pre-process/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt \
- && pip install --no-cache-dir "astronomer-cosmos==${COSMOS_VERSION}" \
+ && case "${COSMOS_VERSION}" in \
+      */*|git+*) pip install --no-cache-dir "git+https://github.com/astronomer/astronomer-cosmos.git@${COSMOS_VERSION}" ;; \
+      *) pip install --no-cache-dir "astronomer-cosmos==${COSMOS_VERSION}" ;; \
+    esac \
  && pip install --no-cache-dir "protobuf>=6,<7"
 
 WORKDIR /opt/airflow
@@ -109,6 +114,20 @@ COPY --chown=airflow:0 benchmark/experiment/scripts/trigger_dag.sh /opt/airflow/
 # Pre-install dbt packages so Cosmos can parse the project at DAG import time
 # without each pod needing to run `dbt deps` first.
 RUN dbt deps --no-use-colors
+
+# XCom backup benchmark: both watcher projects fail their dbt build at the end (on-run-end hook) so the
+# producer retries and restores its backup; the generated project scales altered_jaffle_shop to ~1000 models.
+COPY --chown=airflow:0 dbt/altered_jaffle_shop /opt/airflow/altered_jaffle_shop
+COPY --chown=airflow:0 benchmark/pre-process/profiles-altered-jaffle-shop.yml /opt/airflow/altered_jaffle_shop/profiles.yml
+RUN cd /opt/airflow/altered_jaffle_shop \
+ && for file in models/customers_slow_query.sql models/long_model_cross_random.sql models/long_model_subquery_windows.sql models/long_model_text_processing.sql; do \
+      for i in $(seq 1 "${GENERATED_COPIES}"); do cp -n "$file" "${file%.sql}${i}.sql"; done; \
+    done \
+ && printf 'model_name,array_x,array_y\ncustomers_slow_query,5,5\nlong_model_cross_random,5,5\nlong_model_text_processing,5,5\nlong_model_subquery_windows,5,1\n' > seeds/model_params.csv \
+ && printf '\non-run-end:\n  - "select 1/0 as fail_after_all_models"\n' >> dbt_project.yml \
+ && dbt parse --no-use-colors --profiles-dir . --project-dir . --target-path target
+RUN printf '\non-run-end:\n  - "select 1/0 as fail_after_all_models"\n' >> /opt/airflow/dbt_project.yml \
+ && dbt parse --no-use-colors --profiles-dir /opt/airflow --project-dir /opt/airflow --target-path /opt/airflow/target
 
 # DAGs for both Job-based experiments and chart-based pods.
 COPY --chown=airflow:0 benchmark/dags /opt/airflow/dags

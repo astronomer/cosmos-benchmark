@@ -52,6 +52,11 @@ rm -f "$SENTINEL"
 TS="$(date +%Y%m%d-%H%M%S)"
 SWEEP_CSV="${RESULTS_DIR}/sweep-${TS}.csv"
 SWEEP_MD="${RESULTS_DIR}/sweep-${TS}.md"
+# XCom backup benchmark: which DAGs to run and where their per-run timings go.
+SWEEP_DAGS="${SWEEP_DAGS:-example_dbt_dag_watcher}"
+BACKUP_JSONL="${RESULTS_DIR}/backup-${TS}.jsonl"
+# A git ref such as bench/2771-rows8kb is a valid COSMOS_VERSION but not a valid image tag.
+image_tag() { printf 'cosmos-%s' "$(printf '%s' "$1" | tr '/' '-')"; }
 
 read -ra VERSIONS <<<"$COSMOS_VERSIONS"
 read -ra THREADS  <<<"$THREADS_VALUES"
@@ -66,7 +71,7 @@ cd "${REPO_ROOT}/benchmark"
 # already on cosmos=FIRST_VERSION; subsequent versions get a fresh build + helm
 # upgrade below.
 COSMOS_VERSION="$FIRST_VERSION" \
-IMAGE_TAG="cosmos-${FIRST_VERSION}" \
+IMAGE_TAG="$(image_tag "$FIRST_VERSION")" \
 AIRFLOW_BASE="$AIRFLOW_BASE" \
 CHART_VERSION="$CHART_VERSION" \
   ./setup.sh
@@ -75,7 +80,7 @@ CHART_VERSION="$CHART_VERSION" \
 # sweep is comparable to the LOCAL-vs-WATCHER table in benchmark/readme.md.
 helm --kube-context kind-kind upgrade airflow apache-airflow/airflow \
   --version "${CHART_VERSION}" -n airflow -f pre-process/values.yml \
-  --set "images.airflow.tag=cosmos-${FIRST_VERSION}" \
+  --set "images.airflow.tag=$(image_tag "$FIRST_VERSION")" \
   --set workers.replicas=9
 kubectl --context kind-kind -n airflow rollout status \
   deployment/airflow-worker --timeout=600s
@@ -90,7 +95,7 @@ kubectl --context kind-kind -n airflow rollout status \
 
 # --- Sweep loop --------------------------------------------------------------
 for v in "${VERSIONS[@]}"; do
-  TAG="cosmos-${v}"
+  TAG="$(image_tag "$v")"
 
   if [ "$v" != "$FIRST_VERSION" ]; then
     # Build + load + redeploy. The build is cached for layers that don't depend
@@ -136,10 +141,13 @@ for v in "${VERSIONS[@]}"; do
     # tracking the prior threads value across iterations.
     kubectl --context kind-kind exec -n airflow "$PROD_POD" -c worker -- \
       sed -i -E "s/^([[:space:]]*threads:).*/\\1 ${t}/" /opt/airflow/profiles.yml
+    kubectl --context kind-kind exec -n airflow "$PROD_POD" -c worker -- \
+      sh -c "test -f /opt/airflow/altered_jaffle_shop/profiles.yml && sed -i -E \"s/^([[:space:]]*threads:).*/\\1 ${t}/\" /opt/airflow/altered_jaffle_shop/profiles.yml || true"
 
     METRICS_CSV="$SWEEP_CSV" \
+    BACKUP_JSONL="$BACKUP_JSONL" \
     BENCH_LABEL="cosmos=${v} threads=${t}" \
-    DAGS="example_dbt_dag_watcher" \
+    DAGS="$SWEEP_DAGS" \
     REPS="$REPS" \
       ./run-complex-test.sh
 
@@ -163,6 +171,7 @@ LABEL_ORDER="${LABEL_ORDER%,}"
 
 ln -sfn "$SWEEP_CSV" "${RESULTS_DIR}/sweep-latest.csv"
 ln -sfn "$SWEEP_MD"  "${RESULTS_DIR}/sweep-latest.md"
+[ -f "$BACKUP_JSONL" ] && ln -sfn "$BACKUP_JSONL" "${RESULTS_DIR}/backup-latest.jsonl"
 
 touch "$SENTINEL"
 echo "SWEEP DONE: $SWEEP_CSV"

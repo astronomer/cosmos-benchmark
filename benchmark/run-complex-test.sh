@@ -61,6 +61,10 @@ for RUN_DAG_NAME in $DAGS; do
       sleep 40
       KUBE_CONTEXT="$KUBE_CONTEXT" ./post-process/report-dag-run-pool-metrics.sh "$RUN_DAG_NAME" \
         || echo "WARNING: metrics report failed for run #$i of $RUN_DAG_NAME; continuing."
+      if [ -n "${BACKUP_JSONL:-}" ]; then
+        KUBE_CONTEXT="$KUBE_CONTEXT" ./post-process/report-backup-metrics.sh "$RUN_DAG_NAME" \
+          || echo "WARNING: backup metrics report failed for run #$i of $RUN_DAG_NAME; continuing."
+      fi
     else
       FAILED_REPS=$((FAILED_REPS + 1))
       echo "WARNING: DAG run #$i for $RUN_DAG_NAME did not reach success (exit $trigger_rc); skipping its metrics and continuing the sweep."

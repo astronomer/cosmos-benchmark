@@ -41,6 +41,7 @@ mkdir -p "$LOCAL_RESULTS"
 # files, not the symlinks (gcloud scp doesn't follow them across the wire).
 LATEST_CSV=$(ssh_exec "readlink -f ${REMOTE_RESULTS}/sweep-latest.csv" 2>/dev/null | tr -d '\r')
 LATEST_MD=$(ssh_exec  "readlink -f ${REMOTE_RESULTS}/sweep-latest.md"  2>/dev/null | tr -d '\r')
+LATEST_JSONL=$(ssh_exec "readlink -f ${REMOTE_RESULTS}/backup-latest.jsonl" 2>/dev/null | tr -d '\r')
 
 if [ -z "$LATEST_CSV" ]; then
   echo "ERROR: ${REMOTE_RESULTS}/sweep-latest.csv missing on the VM." >&2
@@ -57,6 +58,9 @@ if [ -n "$LATEST_MD" ]; then
   SCP_SOURCES+=("${VM_NAME}:${LATEST_MD}")
 else
   echo "NOTE: summary markdown not present yet (sweep may still be running); fetching CSV only."
+fi
+if [ -n "$LATEST_JSONL" ]; then
+  SCP_SOURCES+=("${VM_NAME}:${LATEST_JSONL}")
 fi
 
 gcloud --project="$GCP_PROJECT" compute scp \

@@ -61,6 +61,10 @@ CHART_VERSION="${CHART_VERSION:-1.21.0}"
 # override to a feature branch while the remote scripts are still in review.
 REPO_URL="${REPO_URL:-https://github.com/astronomer/cosmos-benchmark.git}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
+# DAG ids run per sweep cell; the XCom backup benchmark passes its bench_* DAGs here.
+SWEEP_DAGS="${SWEEP_DAGS:-example_dbt_dag_watcher}"
+# AUTO_APPROVE=1 skips the confirmation prompt, for scripted provisioning.
+AUTO_APPROVE="${AUTO_APPROVE:-0}"
 
 # --- Local sanity checks -----------------------------------------------------
 if ! command -v gcloud >/dev/null 2>&1; then
@@ -101,6 +105,7 @@ THREADS_VALUES="$(fetch threads-values)"
 REPS="$(fetch reps)"
 AIRFLOW_BASE="$(fetch airflow-base)"
 CHART_VERSION="$(fetch chart-version)"
+SWEEP_DAGS="$(fetch sweep-dags)"
 
 mkdir -p /opt/cosmos-bench
 cd /opt/cosmos-bench
@@ -114,7 +119,7 @@ fi
 
 # Hand off to the in-repo bootstrap. Exporting the sweep config so bootstrap.sh
 # and run-sweep.sh can pick it up without re-reading metadata.
-export COSMOS_VERSIONS THREADS_VALUES REPS AIRFLOW_BASE CHART_VERSION
+export COSMOS_VERSIONS THREADS_VALUES REPS AIRFLOW_BASE CHART_VERSION SWEEP_DAGS
 exec bash cosmos-benchmark/benchmark/remote/bootstrap.sh
 STARTUP_EOF
 )
@@ -130,6 +135,7 @@ printf '%s' "$THREADS_VALUES"  > "${STAGE_DIR}/threads-values"
 printf '%s' "$REPS"            > "${STAGE_DIR}/reps"
 printf '%s' "$AIRFLOW_BASE"    > "${STAGE_DIR}/airflow-base"
 printf '%s' "$CHART_VERSION"   > "${STAGE_DIR}/chart-version"
+printf '%s' "$SWEEP_DAGS"      > "${STAGE_DIR}/sweep-dags"
 
 # Rough wall-clock estimate so the operator can size their patience to the
 # actual matrix instead of a hardcoded blurb. Heuristic per rep is ~6 min
@@ -171,7 +177,9 @@ $EST_REBUILDS min image rebuilds + \
 $NUM_CELLS \xc3\x97 $REPS reps \xc3\x97 ~6 min = $EST_RUNS min sweep).
 Hit Ctrl-C now to abort. Press ENTER to create the VM.
 EOF
-read -r _
+if [ "$AUTO_APPROVE" != "1" ]; then
+  read -r _
+fi
 
 # Existing VM with the same name in the same zone? Bail rather than overwrite.
 if gcloud --project="$GCP_PROJECT" compute instances describe "$VM_NAME" \
@@ -203,7 +211,8 @@ gcloud --project="$GCP_PROJECT" compute instances create "$VM_NAME" \
 "threads-values=${STAGE_DIR}/threads-values,"\
 "reps=${STAGE_DIR}/reps,"\
 "airflow-base=${STAGE_DIR}/airflow-base,"\
-"chart-version=${STAGE_DIR}/chart-version"
+"chart-version=${STAGE_DIR}/chart-version,"\
+"sweep-dags=${STAGE_DIR}/sweep-dags"
 
 cat <<EOF
 
