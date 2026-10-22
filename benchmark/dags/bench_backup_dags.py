@@ -40,6 +40,15 @@ def instrument_producer(producer):
             xcom.MAX_BACKUP_ROW_BYTES = int(ROW_BYTES_OVERRIDE)
         timers = {"persist_s": 0.0, "persist_calls": 0, "restore_read_s": 0.0, "restore_rows": 0, "delete_s": 0.0, "delete_rows": 0}
         original_persist, original_read, original_delete = xcom._persist_backup_row, xcom._read_task_state_store_rows, xcom._delete_task_state_store_rows
+        original_persist_variable = xcom._persist_backup
+
+        def timed_persist_variable(var_key, backup_buffer):
+            started = time.perf_counter()
+            original_persist_variable(var_key, backup_buffer)
+            timers["persist_s"] += time.perf_counter() - started
+            timers["persist_calls"] += 1
+
+        xcom._persist_backup = timed_persist_variable
 
         def timed_persist(ti, key, value):
             started = time.perf_counter()
